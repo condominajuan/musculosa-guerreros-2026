@@ -127,11 +127,12 @@ function onEdit(e) {
 }
 
 // ===== Aviso por WhatsApp (link wa.me con el mensaje armado; se envia con un clic) =====
+var EMOJI_ESPADAS = '%20%E2%9A%94%EF%B8%8F';   // espacio + espadas cruzadas (U+2694 U+FE0F)
 function mensaje_(nombre, id, division, talle) {
   var primero = String(nombre).trim().split(' ')[0];
   return 'Hola ' + primero + '! Te confirmamos tu pedido ' + id + ': musculosa Los Guerreros, división ' + division +
     ', talle ' + talle + '. Pago confirmado. Cuando tengamos novedades de la entrega te avisamos por acá. ' +
-    'Gracias por sumarte! Club Manuel Belgrano';
+    'Gracias por sumarte! LG';
 }
 
 /** Normaliza un celular argentino a 549 + area + numero (10 digitos, sin 0 ni 15). Devuelve '' si no se puede. */
@@ -152,7 +153,8 @@ function avisoFormula_(sh, col, r) {
   var v = function (h) { return sh.getRange(r, col[h]).getValue(); };
   var tel = telAR_(v('WhatsApp'));
   if (!tel) return '="Revisar número"';
-  var url = 'https://wa.me/' + tel + '?text=' + encodeURIComponent(mensaje_(v('Nombre y apellido'), v('ID'), v('División'), v('Talle')));
+  var url = 'https://wa.me/' + tel + '?text=' + encodeURIComponent(mensaje_(v('Nombre y apellido'), v('ID'), v('División'), v('Talle'))) +
+    EMOJI_ESPADAS;   // emoji ya codificado en la URL: no depende de como el editor guarde el archivo
   return '=HYPERLINK("' + url + '","Avisar por WhatsApp")';
 }
 
