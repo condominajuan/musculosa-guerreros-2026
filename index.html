@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Musculosa-Guerreros-2026</title>
+<meta name="description" content="Pedí la musculosa deportiva del Club Manuel Belgrano - Los Guerreros, Playoff 2026.">
+<meta name="theme-color" content="#0B1F4B">
+<link rel="preload" as="image" href="assets/front.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --rojo:#C8102E; --rojo-osc:#9E0B23; --navy:#0B1F4B; --navy-2:#13306E; --blanco:#fff;
+  --gris:#F2F3F7; --texto:#0E1630; --suave:#5B647D; --ok:#1B8A4B; --borde:#D8DCE6;
+  --head:'Oswald',Impact,'Arial Narrow',sans-serif; --body:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:var(--body);color:var(--texto);background:var(--gris);line-height:1.45}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+h1,h2,h3{font-family:var(--head);text-transform:uppercase;letter-spacing:.02em;line-height:1.05;margin:0}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px}
+
+/* ===== Hero ===== */
+.hero{position:relative;color:#fff;overflow:hidden;padding:18px 0 28px;
+  background:
+    radial-gradient(60% 40% at 50% 62%,rgba(255,255,255,.07),transparent 70%),
+    linear-gradient(155deg,#0B1F4B 0%,#2A1336 38%,#5A0C25 72%,#8E0A1F 100%)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;opacity:.9}
+.tag{background:var(--rojo);padding:4px 10px;border-radius:999px;font-weight:800}
+.hero h1{font-size:clamp(34px,10vw,56px);margin:14px 0 4px}
+.hero h1 span{color:#ff4d63}
+.hero p.lead{margin:0;opacity:.85;font-size:15px}
+
+.stage{position:relative;height:min(108vw,470px);margin:10px auto 0;perspective:1100px;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab}
+.stage:active{cursor:grabbing}
+.jersey{position:absolute;inset:0 0 34px;transform-style:preserve-3d;will-change:transform}
+.face{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.face img{max-height:100%;max-width:92%;pointer-events:none;-webkit-user-drag:none;filter:drop-shadow(0 12px 18px rgba(0,0,0,.35))}
+.face.back{transform:rotateY(180deg)}
+.shadow{position:absolute;left:50%;bottom:6px;width:62%;height:26px;margin-left:-31%;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(0,0,0,.55),transparent);transform-origin:center}
+.hint{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;background:rgba(11,31,75,.78);
+  padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;white-space:nowrap;transition:opacity .4s}
+.hint.hide{opacity:0}
+.views{display:flex;justify-content:center;gap:8px;margin-top:6px}
+.views button{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;padding:8px 18px;border-radius:999px;font-weight:600;font-size:14px}
+.views button[aria-pressed=true]{background:#fff;color:var(--navy);border-color:#fff}
+.feat{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;margin:16px 0 0;padding:0;list-style:none;font-size:13px;opacity:.85}
+
+/* ===== Sale strip ===== */
+.sale{background:var(--rojo);color:#fff;text-align:center;padding:10px 16px;font-weight:600;font-size:14px}
+.sale b{font-family:var(--head);font-size:18px;letter-spacing:.04em}
+.sale .cd{font-variant-numeric:tabular-nums;font-weight:800;background:rgba(0,0,0,.2);padding:2px 8px;border-radius:6px;margin-left:4px}
+
+/* ===== Cards / form ===== */
+main{padding:20px 0 48px}
+.card{background:#fff;border-radius:18px;padding:20px;box-shadow:0 1px 2px rgba(14,22,48,.06),0 8px 24px rgba(14,22,48,.06)}
+.card h2{font-size:26px;color:var(--navy)}
+.card h2 small{display:block;font-family:var(--body);text-transform:none;letter-spacing:0;font-size:14px;color:var(--suave);font-weight:400;margin-top:6px}
+.steps{display:flex;gap:6px;margin:0 0 14px}
+.steps i{flex:1;height:5px;border-radius:9px;background:var(--borde)}
+.steps i.on{background:var(--rojo)}
+.field{margin-top:18px}
+.field>label,.field>.lbl{display:block;font-weight:800;font-size:14px;margin-bottom:6px}
+.field .help{font-size:12.5px;color:var(--suave);margin:-2px 0 6px}
+input[type=text],input[type=tel]{width:100%;font-size:16px;padding:13px 14px;border:2px solid var(--borde);border-radius:12px;background:#fff;outline:none;transition:border-color .15s}
+input[type=text]:focus,input[type=tel]:focus{border-color:var(--navy)}
+.err{color:var(--rojo);font-size:13px;font-weight:600;margin-top:6px;min-height:0}
+.invalid input[type=text],.invalid input[type=tel]{border-color:var(--rojo)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;border:0;padding:0;margin:0}
+.chips label{position:relative}
+.chips input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.chips span{display:inline-flex;align-items:center;justify-content:center;min-width:54px;height:46px;padding:0 14px;border:2px solid var(--borde);border-radius:12px;font-weight:800;font-family:var(--head);font-size:18px;letter-spacing:.03em;background:#fff;transition:all .12s}
+.chips input:checked+span{background:var(--navy);border-color:var(--navy);color:#fff}
+.chips input:focus-visible+span{outline:3px solid var(--rojo);outline-offset:2px}
+.invalid .chips span{border-color:#f1a5b1}
+details.guia{margin-top:10px;font-size:14px}
+details.guia summary{cursor:pointer;color:var(--navy);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+table{border-collapse:collapse;width:100%;margin-top:8px;font-size:14px;text-align:center}
+th,td{padding:6px 4px;border-bottom:1px solid var(--borde)}
+th{font-size:12px;color:var(--suave);text-transform:uppercase;letter-spacing:.05em}
+td:first-child{font-weight:800}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
+.precio{margin-top:22px;border-radius:14px;background:var(--navy);color:#fff;padding:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.precio .old{text-decoration:line-through;opacity:.6;font-size:15px;display:block}
+.precio .now{font-family:var(--head);font-size:34px;line-height:1}
+.badge{background:var(--rojo);color:#fff;font-weight:800;font-size:12px;padding:5px 10px;border-radius:999px;text-transform:uppercase;letter-spacing:.06em}
+.precio .cdl{font-size:12.5px;opacity:.85;width:100%}
+
+.btn{display:flex;width:100%;align-items:center;justify-content:center;gap:10px;margin-top:18px;border:0;border-radius:14px;padding:16px;font-family:var(--head);font-size:20px;letter-spacing:.05em;text-transform:uppercase;background:var(--rojo);color:#fff;box-shadow:0 6px 0 var(--rojo-osc);transition:transform .08s,box-shadow .08s,opacity .2s}
+.btn:active{transform:translateY(3px);box-shadow:0 3px 0 var(--rojo-osc)}
+.btn[disabled]{opacity:.65;cursor:progress}
+.btn.sec{background:#fff;color:var(--navy);border:2px solid var(--navy);box-shadow:none}
+.spin{width:18px;height:18px;border:3px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp .8s linear infinite;display:none}
+.btn[aria-busy=true] .spin{display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+.note{font-size:13px;color:var(--suave);margin:12px 0 0}
+.alert{border-radius:12px;padding:12px 14px;font-size:14px;margin-top:14px;font-weight:600}
+.alert.bad{background:#FDE2E1;color:#8A0B1F}
+.alert.info{background:#E6ECFA;color:var(--navy)}
+.alert.okk{background:#D9F2DC;color:#0F5A30}
+
+/* Step 2 */
+.monto{text-align:center;margin:16px 0 4px}
+.monto .num{font-family:var(--head);font-size:52px;color:var(--navy);line-height:1}
+.monto .old{text-decoration:line-through;color:var(--suave)}
+.alias{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;border:2px dashed var(--navy);border-radius:14px;padding:10px 10px 10px 16px}
+.alias small{display:block;color:var(--suave);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+.alias b{font-size:20px;word-break:break-all}
+.alias button{border:0;background:var(--navy);color:#fff;border-radius:10px;padding:10px 14px;font-weight:700;white-space:nowrap}
+ol.pasos{padding-left:20px;margin:16px 0 0;font-size:15px}
+ol.pasos li{margin:6px 0}
+.drop{display:block;margin-top:16px;border:2px dashed var(--borde);border-radius:14px;padding:18px;text-align:center;cursor:pointer;background:var(--gris);font-weight:600}
+.drop input{display:block;margin:10px auto 0;max-width:100%;font-size:14px}
+.drop.has{border-color:var(--ok);background:#EEF9F0}
+.preview{max-width:140px;max-height:160px;border-radius:8px;margin:10px auto 0;display:block}
+.resumen{margin-top:12px;font-size:14px;background:var(--gris);border-radius:12px;padding:12px 14px}
+.resumen div{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
+.resumen span{color:var(--suave)}
+.big-ok{font-size:54px;text-align:center;line-height:1;margin-top:6px}
+.linkbox{word-break:break-all;font-size:13px;background:var(--gris);padding:8px 10px;border-radius:8px;margin-top:6px}
+footer{text-align:center;color:var(--suave);font-size:12.5px;padding:0 16px 32px}
+[hidden]{display:none!important}
+
+@media (min-width:900px){
+  .hero .wrap{max-width:1000px;display:grid;grid-template-columns:1fr 1.1fr;align-items:center;gap:24px}
+  .hero .feat{justify-content:flex-start}
+  .stage{height:520px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="copy">
+      <div class="top"><span>Club Manuel Belgrano</span><span class="tag">Playoff 2026</span></div>
+      <h1>Musculosa<br><span>Los Guerreros</span></h1>
+      <p class="lead">La musculosa deportiva del club, con el escudo y el de Los Guerreros. Para alentar en la cancha y para el gimnasio de todos los días.</p>
+      <ul class="feat"><li>Rayas rojo y azul</li><li>Escudo del club</li><li>Tela deportiva</li></ul>
+    </div>
+    <div>
+      <div class="stage" id="stage" aria-label="Musculosa en 3D. Arrastrá para girarla.">
+        <div class="jersey" id="jersey">
+          <div class="face front"><img src="assets/front.png" alt="Frente de la musculosa: rayas rojas y azules con el escudo de Los Guerreros" draggable="false"></div>
+          <div class="face back"><img src="assets/back.png" alt="Espalda de la musculosa: escudo del club y la leyenda Los Guerreros" draggable="false"></div>
+        </div>
+        <div class="shadow" id="shadow"></div>
+        <div class="hint" id="hint">↔ Arrastrá para girar</div>
+      </div>
+      <div class="views" role="group" aria-label="Vista">
+        <button type="button" data-view="0" aria-pressed="true">Frente</button>
+        <button type="button" data-view="180" aria-pressed="false">Espalda</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="sale" id="saleStrip" hidden>
+  <b>SALE HOY · $10.000 OFF</b> pedí y pagá antes de las 23:59 <span class="cd" id="cdStrip">--:--:--</span>
+</div>
+
+<main class="wrap">
+  <!-- ===== Paso 1 ===== -->
+  <section class="card" id="step1" aria-labelledby="t1">
+    <div class="steps" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
+    <h2 id="t1">Hacé tu pedido<small>Una musculosa por pedido. Si querés más, enviá el formulario de nuevo.</small></h2>
+    <form id="form" novalidate>
+      <div class="field" data-f="nombre">
+        <label for="nombre">Nombre y apellido</label>
+        <input type="text" id="nombre" name="nombre" autocomplete="name" maxlength="80" required>
+        <div class="err" aria-live="polite"></div>
+      </div>
+      <div class="field" data-f="apodo">
+        <label for="apodo">Nombre / apodo para la musculosa</label>
+        <input type="text" id="apodo" name="apodo" maxlength="30" autocapitalize="characters" required>
+        <div class="err" aria-live="polite"></div>
+      </div>
+      <div class="field" data-f="division">
+        <span class="lbl" id="lblDiv">División</span>
+        <fieldset class="chips" aria-labelledby="lblDiv" id="chipsDiv"></fieldset>
+        <div class="err" aria-live="polite"></div>
+      </div>
+      <div class="field" data-f="talle">
+        <span class="lbl" id="lblTalle">Talle</span>
+        <fieldset class="chips" aria-labelledby="lblTalle" id="chipsTalle"></fieldset>
+        <details class="guia">
+          <summary>Guía de talles</summary>
+          <table>
+            <thead><tr><th>Talle</th><th>Alto (cm)</th><th>Ancho (cm)</th></tr></thead>
+            <tbody id="guia"></tbody>
+          </table>
+          <p class="note">Medidas aproximadas (±1 cm). Medí una musculosa tuya apoyada en una mesa y compará.</p>
+        </details>
+        <div class="err" aria-live="polite"></div>
+      </div>
+      <div class="field" data-f="whatsapp">
+        <label for="whatsapp">WhatsApp</label>
+        <p class="help">Para avisarte cuando llegue. Con código de área, ej: 11 2345 6789</p>
+        <input type="tel" id="whatsapp" name="whatsapp" autocomplete="tel" inputmode="tel" maxlength="20" required>
+        <div class="err" aria-live="polite"></div>
+      </div>
+      <div class="hp" aria-hidden="true"><label>Web <input type="text" name="web" id="web" tabindex="-1" autocomplete="off"></label></div>
+
+      <div class="precio" id="precioBox"></div>
+      <div class="alert bad" id="err1" role="alert" hidden></div>
+      <button class="btn" type="submit" id="btn1"><span class="spin"></span><span class="lbl">Reservar mi musculosa</span></button>
+      <p class="note">Primero guardamos tu pedido, después pagás por transferencia y subís el comprobante.</p>
+    </form>
+  </section>
+
+  <!-- ===== Paso 2 ===== -->
+  <section class="card" id="step2" aria-labelledby="t2" hidden>
+    <div class="steps" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></div>
+    <div class="alert info" id="banner" hidden></div>
+    <h2 id="t2">Pagá y subí tu comprobante<small id="sub2"></small></h2>
+    <div class="monto"><div class="old" id="montoOld" hidden></div><div class="num" id="monto"></div><div class="note" id="montoNote"></div></div>
+    <div class="alias">
+      <div><small>Alias para transferir</small><b id="alias">dami.lizzano</b></div>
+      <button type="button" id="copy">Copiar alias</button>
+    </div>
+    <ol class="pasos">
+      <li>Copiá el alias y hacé la transferencia desde tu home banking o billetera.</li>
+      <li><b>Volvé a esta página</b>: tu pedido queda guardado en este celular.</li>
+      <li>Sacale captura al comprobante y subilo acá abajo.</li>
+    </ol>
+    <label class="drop" id="drop">📎 Adjuntá el comprobante (foto o PDF, hasta 5 MB)
+      <input type="file" id="file" accept="image/*,application/pdf">
+      <img class="preview" id="preview" alt="Vista previa del comprobante" hidden>
+      <span class="note" id="fileName"></span>
+    </label>
+    <div class="alert bad" id="err2" role="alert" hidden></div>
+    <button class="btn" type="button" id="btn2" disabled><span class="spin"></span><span class="lbl">Enviar comprobante</span></button>
+    <div class="resumen" id="res2"></div>
+    <p class="note">¿Querés seguir desde otro dispositivo? Guardá este link:</p>
+    <div class="linkbox" id="link2"></div>
+    <button class="btn sec" type="button" id="cancel2">Empezar un pedido nuevo</button>
+  </section>
+
+  <!-- ===== Paso 3 ===== -->
+  <section class="card" id="step3" aria-labelledby="t3" hidden>
+    <div class="steps" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+    <div class="big-ok" aria-hidden="true">💪</div>
+    <h2 id="t3" style="text-align:center">¡Listo, Guerrero!<small id="sub3"></small></h2>
+    <div class="alert" id="msg3"></div>
+    <div class="resumen" id="res3"></div>
+    <button class="btn" type="button" id="otro"><span class="lbl">Hacer otro pedido</span></button>
+  </section>
+</main>
+<footer>Club Manuel Belgrano · Los Guerreros · Playoff 2026<br><span id="modo"></span></footer>
+
+<script>
+/* ======= Config ======= */
+const API_URL = ''; // Pegá acá la URL /exec de Apps Script. Vacío = modo demo (simula todo en este navegador).
+const DEMO = !API_URL;
+const PRECIO = 38000, DESCUENTO = 10000, ALIAS = 'dami.lizzano';
+const FECHA_SALE = '2026-10-15'; // solo para el modo demo; en producción manda el servidor
+const DIVISIONES = ['M15','M16','M17','M19','PS'];
+const TALLES = [['XS',68,52],['S',71,55],['M',75,57],['L',78,60],['XL',82,64],['XXL',86,66],['XXXL',91,68]];
+const LS = 'musculosa-pedido';
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = s => document.querySelector(s);
+const pesos = n => '$' + Number(n).toLocaleString('es-AR');
+
+/* ======= Jersey 3D ======= */
+(() => {
+  const stage = $('#stage'), jersey = $('#jersey'), shadow = $('#shadow'), hint = $('#hint');
+  const imgs = jersey.querySelectorAll('img'), btns = document.querySelectorAll('.views button');
+  let angle = 0, vel = 0, dragging = false, lastX = 0, lastT = 0, raf = 0, target = null, idleSince = performance.now(), touched = false;
+
+  function render() {
+    const c = Math.abs(Math.cos(angle * Math.PI / 180));
+    jersey.style.transform = `rotateY(${angle}deg)`;
+    shadow.style.transform = `scaleX(${0.45 + 0.55 * c})`;
+    shadow.style.opacity = 0.55 + 0.45 * c;
+    const b = (0.72 + 0.28 * c).toFixed(3);
+    imgs.forEach(i => i.style.filter = `brightness(${b}) drop-shadow(0 12px 18px rgba(0,0,0,.35))`);
+    const back = Math.cos(angle * Math.PI / 180) < 0;
+    btns[0].setAttribute('aria-pressed', !back); btns[1].setAttribute('aria-pressed', back);
+  }
+  const nearest = a => Math.round(a / 180) * 180;
+  function loop(t) {
+    raf = 0;
+    if (dragging) return;
+    if (target === null && Math.abs(vel) > 0.05) {          // inercia
+      angle += vel * 16; vel *= 0.94;
+      if (Math.abs(vel) < 0.05) target = nearest(angle);
+    } else if (target !== null) {                           // snap tipo resorte
+      const d = target - angle;
+      vel = vel * 0.72 + d * 0.01;                          // ~4° de rebote, ~0,7 s
+      angle += vel * 16 / 4;
+      if (Math.abs(d) < 0.15 && Math.abs(vel) < 0.02) { angle = target; vel = 0; target = null; idleSince = t; }
+    } else if (!reduce && t - idleSince > 2500) {           // vaivén suave de invitación
+      const base = nearest(angle);
+      angle = base + Math.sin((t - idleSince - 2500) / 900) * 14;
+    }
+    render();
+    if (target !== null || Math.abs(vel) > 0.05 || !reduce) raf = requestAnimationFrame(loop);
+  }
+  const kick = () => { if (!raf) raf = requestAnimationFrame(loop); };
+
+  stage.addEventListener('pointerdown', e => {
+    dragging = true; vel = 0; target = null; lastX = e.clientX; lastT = e.timeStamp;
+    stage.setPointerCapture(e.pointerId);
+    if (!touched) { touched = true; hint.classList.add('hide'); }
+  });
+  stage.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const dx = e.clientX - lastX, dt = Math.max(1, e.timeStamp - lastT);
+    angle += dx * 0.6; vel = (dx * 0.6) / dt * 0.9 + vel * 0.1;
+    lastX = e.clientX; lastT = e.timeStamp; render();
+  });
+  const end = e => {
+    if (!dragging) return;
+    dragging = false; idleSince = performance.now();
+    if (e.timeStamp - lastT > 80) vel = 0;                  // se quedó quieto antes de soltar
+    if (reduce) { vel = 0; angle = nearest(angle); render(); return; }
+    if (Math.abs(vel) < 0.05) target = nearest(angle);
+    vel = Math.max(-1.5, Math.min(1.5, vel));
+    kick();
+  };
+  stage.addEventListener('pointerup', end);
+  stage.addEventListener('pointercancel', end);
+  btns.forEach(b => b.addEventListener('click', () => {
+    const want = +b.dataset.view;                           // 0 o 180, en la vuelta más cercana
+    const t = want + Math.round((angle - want) / 360) * 360;
+    hint.classList.add('hide'); touched = true;
+    if (reduce) { angle = t; vel = 0; render(); return; }
+    target = t; vel = 0; kick();
+  }));
+  render(); kick();
+  setTimeout(() => hint.classList.add('hide'), 6000);
+})();
+
+/* ======= Reloj del servidor + sale ======= */
+let offset = 0, saleFin = Date.parse(FECHA_SALE + 'T23:59:59.999-03:00'), saleIni = Date.parse(FECHA_SALE + 'T00:00:00-03:00');
+const now = () => Date.now() + offset;
+const saleOn = () => now() >= saleIni && now() <= saleFin;
+
+async function sync() {
+  try {
+    const r = DEMO ? { serverTime: Date.now(), saleFin } : await api('GET', '');
+    offset = r.serverTime - Date.now();
+    if (r.saleFin) { saleFin = r.saleFin; saleIni = r.saleFin - 86400000 + 1; }
+  } catch (e) { /* sin red: usamos el reloj local solo para mostrar */ }
+  tick();
+}
+function fmtCd(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return [s / 3600, s % 3600 / 60, s % 60].map(n => String(Math.floor(n)).padStart(2, '0')).join(':');
+}
+let lastSale = null;
+function tick() {
+  const on = saleOn(), cd = fmtCd(saleFin - now());
+  $('#saleStrip').hidden = !on;
+  $('#cdStrip').textContent = cd;
+  const c = $('#cdPrecio'); if (c) c.textContent = cd;
+  if (on !== lastSale) {
+    lastSale = on;
+    $('#precioBox').innerHTML = on
+      ? `<div><span class="old">${pesos(PRECIO)}</span><span class="now">${pesos(PRECIO - DESCUENTO)}</span></div>
+         <span class="badge">25% OFF hoy</span>
+         <div class="cdl">Termina en <b id="cdPrecio">${cd}</b> · vale si pedís y subís el comprobante antes de las 23:59</div>`
+      : `<div><span class="now">${pesos(PRECIO)}</span></div><span class="badge" style="background:#fff;color:var(--navy)">Precio final</span>`;
+  }
+}
+setInterval(tick, 1000);
+
+/* ======= API (real o demo) ======= */
+async function api(method, action, payload) {
+  if (DEMO) return demo(action, payload);
+  const ctrl = new AbortController(), to = setTimeout(() => ctrl.abort(), 45000);
+  try {
+    const url = method === 'GET' ? API_URL + (payload ? '?' + new URLSearchParams(payload) : '') : API_URL;
+    const opts = method === 'GET' ? { signal: ctrl.signal }
+      : { method: 'POST', body: JSON.stringify({ action, ...payload }), signal: ctrl.signal }; // text/plain: sin preflight CORS
+    const res = await fetch(url, opts);
+    const j = await res.json();
+    if (!j.ok && j.error) throw new Error(j.error);
+    return j;
+  } catch (e) {
+    if (e.name === 'AbortError' || e instanceof TypeError) throw new Error('No pudimos conectarnos. Revisá tu conexión y probá de nuevo.');
+    throw e;
+  } finally { clearTimeout(to); }
+}
+
+// Simula el backend con localStorage para poder previsualizar sin Apps Script.
+function demo(action, p) {
+  return new Promise((ok, fail) => setTimeout(() => {
+    const db = JSON.parse(localStorage.getItem('musculosa-demo-db') || '{"n":0,"rows":{}}');
+    const save = () => localStorage.setItem('musculosa-demo-db', JSON.stringify(db));
+    const inSale = ms => ms >= saleIni && ms <= saleFin;
+    if (action === 'crear') {
+      const n = ++db.n, id = 'G-' + String(n).padStart(4, '0'), t = Date.now(), d = inSale(t) ? DESCUENTO : 0;
+      db.rows[id] = { ...p, id, clave: Math.random().toString(36).slice(2, 12), fecha: t, descuento: d, total: PRECIO - d, estado: 'Pendiente de pago' };
+      save();
+      ok({ ok: true, id, clave: db.rows[id].clave, fecha: t, total: PRECIO - d, descuento: d, saleProvisorio: d > 0, saleFin, alias: ALIAS });
+    } else if (action === 'comprobante') {
+      const r = db.rows[p.id];
+      if (!r || r.clave !== p.clave) return fail(new Error('No encontramos el pedido ' + p.id + '.'));
+      const s = inSale(r.fecha) && inSale(Date.now()), d = s ? DESCUENTO : 0;
+      Object.assign(r, { descuento: d, total: PRECIO - d, estado: 'Comprobante recibido' }); save();
+      ok({ ok: true, id: r.id, total: r.total, descuento: d, saleAplicado: s });
+    } else if (action === '' && p && p.id) {
+      const r = db.rows[p.id];
+      if (!r || r.clave !== p.k) return fail(new Error('No encontramos el pedido.'));
+      ok({ ok: true, ...r, saleProvisorio: r.descuento > 0 });
+    } else fail(new Error('Acción inválida.'));
+  }, 700));
+}
+
+/* ======= Estado local ======= */
+const load = () => { try { return JSON.parse(localStorage.getItem(LS)); } catch (e) { return null; } };
+const store = s => { try { localStorage.setItem(LS, JSON.stringify(s)); } catch (e) {} };
+let state = load();
+
+function show(step) {
+  ['#step1', '#step2', '#step3'].forEach((s, i) => $(s).hidden = i + 1 !== step);
+}
+function resumenHTML(s) {
+  const d = s.data || {};
+  return [['Pedido', s.id], ['Nombre', d.nombre], ['Apodo', d.apodo], ['División', d.division], ['Talle', d.talle], ['Total', pesos(s.total)]]
+    .map(([k, v]) => `<div><span>${k}</span><b>${esc(v)}</b></div>`).join('');
+}
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function renderStep2(restored) {
+  const s = state;
+  $('#monto').textContent = pesos(s.total);
+  $('#montoOld').hidden = !s.saleProvisorio;
+  $('#montoOld').textContent = pesos(PRECIO);
+  $('#montoNote').textContent = s.saleProvisorio
+    ? 'Precio sale: el descuento se confirma si subís el comprobante hoy antes de las 23:59.'
+    : '';
+  $('#sub2').textContent = 'Transferí el monto exacto al alias y adjuntá el comprobante.';
+  $('#alias').textContent = s.alias || ALIAS;
+  $('#res2').innerHTML = resumenHTML(s);
+  const link = location.origin + location.pathname + '?pedido=' + encodeURIComponent(s.id) + '&k=' + encodeURIComponent(s.clave);
+  $('#link2').textContent = link;
+  $('#banner').hidden = !restored;
+  $('#banner').textContent = `Tu pedido ${s.id} está reservado, solo falta el comprobante.`;
+  show(2);
+}
+function renderStep3() {
+  const s = state;
+  $('#sub3').textContent = `Recibimos el comprobante del pedido ${s.id}.`;
+  const m = $('#msg3');
+  if (s.saleAplicado) { m.className = 'alert okk'; m.textContent = `Entraste en el sale: pagás ${pesos(s.total)} en vez de ${pesos(PRECIO)}. El club confirma el pago y te escribe por WhatsApp.`; }
+  else if (s.perdioSale) { m.className = 'alert bad'; m.textContent = `El comprobante llegó después de las 23:59, así que el total queda en ${pesos(PRECIO)}. El club te va a contactar por la diferencia.`; }
+  else { m.className = 'alert okk'; m.textContent = 'El club confirma el pago y te escribe por WhatsApp.'; }
+  $('#res3').innerHTML = resumenHTML(s);
+  show(3);
+}
+function reset() {
+  localStorage.removeItem(LS); state = null;
+  history.replaceState(null, '', location.pathname);
+  $('#form').reset(); clearFile(); show(1); scrollTo({ top: $('#step1').offsetTop - 10, behavior: reduce ? 'auto' : 'smooth' });
+}
+
+/* ======= Paso 1: formulario ======= */
+$('#chipsDiv').innerHTML = DIVISIONES.map(d => `<label><input type="radio" name="division" value="${d}" required><span>${d}</span></label>`).join('');
+$('#chipsTalle').innerHTML = TALLES.map(([t]) => `<label><input type="radio" name="talle" value="${t}" required><span>${t}</span></label>`).join('');
+$('#guia').innerHTML = TALLES.map(([t, a, b]) => `<tr><td>${t}</td><td>${a}</td><td>${b}</td></tr>`).join('');
+
+function waDigits(v) { return v.replace(/\D/g, ''); }
+function validar(f) {
+  const v = Object.fromEntries(new FormData(f));
+  const errs = {};
+  if ((v.nombre || '').trim().length < 3 || !/\s/.test(v.nombre.trim())) errs.nombre = 'Poné tu nombre y apellido.';
+  if (!(v.apodo || '').trim()) errs.apodo = 'Poné el nombre o apodo para la musculosa.';
+  if (!v.division) errs.division = 'Elegí tu división.';
+  if (!v.talle) errs.talle = 'Elegí un talle.';
+  const w = waDigits(v.whatsapp || '');
+  if (w.length < 10 || w.length > 13) errs.whatsapp = 'Revisá el número: código de área + número, ej: 11 2345 6789.';
+  document.querySelectorAll('.field[data-f]').forEach(el => {
+    const e = errs[el.dataset.f];
+    el.classList.toggle('invalid', !!e);
+    el.querySelector('.err').textContent = e || '';
+  });
+  return { v, errs };
+}
+document.querySelectorAll('#form input').forEach(i => i.addEventListener('input', () => {
+  const el = i.closest('.field[data-f]');
+  if (el && el.classList.contains('invalid')) validar($('#form'));
+}));
+
+let sending = false;
+$('#form').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (sending) return;
+  const { v, errs } = validar(e.target);
+  const first = Object.keys(errs)[0];
+  if (first) { const el = document.querySelector(`.field[data-f="${first}"] input`); el && el.focus(); return; }
+  const data = { nombre: v.nombre.trim(), apodo: v.apodo.trim(), division: v.division, talle: v.talle, whatsapp: waDigits(v.whatsapp) };
+  const btn = $('#btn1'), err = $('#err1');
+  sending = true; btn.disabled = true; btn.setAttribute('aria-busy', 'true'); err.hidden = true;
+  btn.querySelector('.lbl').textContent = 'Guardando…';
+  const nonce = e.target.dataset.nonce || (e.target.dataset.nonce = (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random()));
+  try {
+    const r = await api('POST', 'crear', { ...data, web: v.web, nonce });
+    state = { id: r.id, clave: r.clave, data, total: r.total, saleProvisorio: r.saleProvisorio, alias: r.alias, step: 2 };
+    store(state);
+    delete e.target.dataset.nonce;
+    history.replaceState(null, '', '?pedido=' + encodeURIComponent(r.id) + '&k=' + encodeURIComponent(r.clave));
+    renderStep2(false);
+    $('#step2').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  } catch (x) {
+    err.textContent = x.message + ' Tus datos siguen cargados, tocá el botón de nuevo.'; err.hidden = false;
+  } finally {
+    sending = false; btn.disabled = false; btn.removeAttribute('aria-busy');
+    btn.querySelector('.lbl').textContent = 'Reservar mi musculosa';
+  }
+});
+
+/* ======= Paso 2: comprobante ======= */
+$('#copy').addEventListener('click', async () => {
+  const a = $('#alias').textContent, b = $('#copy');
+  try { await navigator.clipboard.writeText(a); }
+  catch (e) { const r = document.createRange(); r.selectNodeContents($('#alias')); getSelection().removeAllRanges(); getSelection().addRange(r); document.execCommand('copy'); }
+  b.textContent = '¡Copiado!'; setTimeout(() => b.textContent = 'Copiar alias', 1800);
+});
+
+let upload = null; // {mime, data(base64), url}
+function clearFile() {
+  upload = null; $('#file').value = ''; $('#preview').hidden = true; $('#fileName').textContent = '';
+  $('#drop').classList.remove('has'); $('#btn2').disabled = true;
+}
+const toB64 = blob => new Promise((ok, fail) => { const r = new FileReader(); r.onload = () => ok(r.result.split(',')[1]); r.onerror = fail; r.readAsDataURL(blob); });
+async function compress(file) {
+  const img = new Image(), url = URL.createObjectURL(file);
+  try {
+    await new Promise((ok, fail) => { img.onload = ok; img.onerror = fail; img.src = url; });
+    const k = Math.min(1, 1280 / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement('canvas');
+    c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+    const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+    return await new Promise(ok => c.toBlob(ok, 'image/jpeg', 0.82));
+  } finally { URL.revokeObjectURL(url); }
+}
+$('#file').addEventListener('change', async e => {
+  const f = e.target.files[0], err = $('#err2');
+  err.hidden = true;
+  if (!f) return clearFile();
+  try {
+    let blob = f, mime = f.type;
+    if (f.type.startsWith('image/')) {
+      try { blob = await compress(f); mime = 'image/jpeg'; } catch (x) { /* el navegador no la decodifica (ej. HEIC): va original */ }
+    } else if (f.type !== 'application/pdf') throw new Error('Subí una imagen o un PDF.');
+    if (blob.size > 5 * 1024 * 1024) throw new Error('El archivo pesa más de 5 MB. Probá con una captura de pantalla.');
+    upload = { mime, data: await toB64(blob) };
+    $('#fileName').textContent = f.name + ' · ' + Math.round(blob.size / 1024) + ' KB';
+    const p = $('#preview');
+    if (mime.startsWith('image/') && mime !== 'image/heic') { p.src = 'data:' + mime + ';base64,' + upload.data; p.hidden = false; } else p.hidden = true;
+    $('#drop').classList.add('has'); $('#btn2').disabled = false;
+  } catch (x) { clearFile(); err.textContent = x.message || 'No pudimos leer el archivo.'; err.hidden = false; }
+});
+
+$('#btn2').addEventListener('click', async () => {
+  if (sending || !upload || !state) return;
+  const btn = $('#btn2'), err = $('#err2');
+  sending = true; btn.disabled = true; btn.setAttribute('aria-busy', 'true'); err.hidden = true;
+  btn.querySelector('.lbl').textContent = 'Subiendo…';
+  try {
+    const r = await api('POST', 'comprobante', { id: state.id, clave: state.clave, mime: upload.mime, data: upload.data });
+    Object.assign(state, { step: 3, total: r.total, saleAplicado: r.saleAplicado, perdioSale: state.saleProvisorio && !r.saleAplicado });
+    store(state); clearFile(); renderStep3(); scrollTo({ top: $('#step3').offsetTop - 10, behavior: reduce ? 'auto' : 'smooth' });
+  } catch (x) {
+    err.textContent = x.message + ' Tu pedido sigue guardado, probá de nuevo.'; err.hidden = false; btn.disabled = false;
+  } finally {
+    sending = false; btn.removeAttribute('aria-busy'); btn.querySelector('.lbl').textContent = 'Enviar comprobante';
+  }
+});
+$('#cancel2').addEventListener('click', () => { if (confirm('Tu pedido actual queda guardado en el club como pendiente de pago. ¿Empezar uno nuevo?')) reset(); });
+$('#otro').addEventListener('click', reset);
+
+/* ======= Restaurar al volver (recarga, link, app del banco) ======= */
+async function restore() {
+  const q = new URLSearchParams(location.search), id = q.get('pedido'), k = q.get('k');
+  if (id && k && !(state && state.id === id)) {
+    try {
+      const r = await api('GET', '', { id, k });
+      state = { id, clave: k, data: { nombre: r.nombre, apodo: r.apodo, division: r.division, talle: r.talle }, total: r.total,
+        saleProvisorio: r.saleProvisorio, alias: r.alias, step: r.estado === 'Pendiente de pago' ? 2 : 3, saleAplicado: r.descuento > 0 };
+      store(state);
+    } catch (x) { $('#err1').textContent = x.message; $('#err1').hidden = false; }
+  }
+  if (state && state.step === 2) renderStep2(true);
+  else if (state && state.step === 3) renderStep3();
+  else return show(1);
+  $(state.step === 2 ? '#step2' : '#step3').scrollIntoView({ block: 'start' }); // volvés directo a tu pedido
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  sync();
+  state = load() || state;
+  if (state && state.step === 2 && $('#step2').hidden === false) $('#banner').hidden = false;
+});
+
+$('#modo').textContent = DEMO ? 'Modo demo: los pedidos se simulan en este navegador.' : '';
+sync();
+restore();
+</script>
+</body>
+</html>
