@@ -12,176 +12,207 @@
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --rojo:#C8102E; --rojo-osc:#9E0B23; --navy:#0B1F4B; --navy-2:#13306E; --blanco:#fff;
+  --rojo:#C8102E; --rojo-osc:#9E0B23; --navy:#0B1F4B; --blanco:#fff;
   --gris:#F2F3F7; --texto:#0E1630; --suave:#5B647D; --ok:#1B8A4B; --borde:#D8DCE6;
   --head:'Oswald',Impact,'Arial Narrow',sans-serif; --body:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --vh:100vh;
 }
+@supports (height:100dvh){:root{--vh:100dvh}}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;font-family:var(--body);color:var(--texto);background:var(--gris);line-height:1.45}
+body{margin:0;font-family:var(--body);color:var(--texto);background:var(--gris);line-height:1.4}
 button,input{font:inherit;color:inherit}
 button{cursor:pointer;-webkit-tap-highlight-color:transparent}
-h1,h2,h3{font-family:var(--head);text-transform:uppercase;letter-spacing:.02em;line-height:1.05;margin:0}
-.wrap{max-width:560px;margin:0 auto;padding:0 16px}
+h1,h2{font-family:var(--head);text-transform:uppercase;letter-spacing:.02em;line-height:1;margin:0}
+svg{flex:none}
+[hidden]{display:none!important}
 
 /* ===== Hero ===== */
-.hero{position:relative;color:#fff;overflow:hidden;padding:18px 0 28px;
-  background:
-    radial-gradient(60% 40% at 50% 62%,rgba(255,255,255,.07),transparent 70%),
-    linear-gradient(155deg,#0B1F4B 0%,#2A1336 38%,#5A0C25 72%,#8E0A1F 100%)}
-.top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;opacity:.9}
+.hero{position:relative;overflow:hidden;color:#fff;background:linear-gradient(155deg,#0B1F4B 0%,#2A1336 38%,#5A0C25 72%,#8E0A1F 100%)}
+.hero::before{content:'';position:absolute;inset:0;background:url(assets/hinchada.jpg) center 35%/cover no-repeat;
+  opacity:.16;mix-blend-mode:luminosity;
+  -webkit-mask-image:linear-gradient(#000 0%,rgba(0,0,0,.85) 40%,transparent 92%);mask-image:linear-gradient(#000 0%,rgba(0,0,0,.85) 40%,transparent 92%)}
+.hero::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(60% 38% at 50% 60%,rgba(255,255,255,.07),transparent 70%)}
+.hero-in{position:relative;z-index:1;height:var(--vh);max-width:1100px;margin:0 auto;display:flex;flex-direction:column;
+  padding:max(14px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom))}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;opacity:.9}
 .tag{background:var(--rojo);padding:4px 10px;border-radius:999px;font-weight:800}
-.hero h1{font-size:clamp(34px,10vw,56px);margin:14px 0 4px}
-.hero h1 span{color:#ff4d63}
-.hero p.lead{margin:0;opacity:.85;font-size:15px}
-
-.stage{position:relative;height:min(108vw,470px);margin:10px auto 0;perspective:1100px;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab}
+.hero h1{font-size:clamp(40px,11.5vw,84px);margin:12px 0 6px;letter-spacing:.01em}
+.hero h1 span{display:block;color:#ff4d63;white-space:nowrap}
+.lead{margin:0;opacity:.9;font-size:15px;max-width:34em}
+.viz{flex:1;min-height:0;display:flex;flex-direction:column}
+.stage{position:relative;flex:1;min-height:150px;perspective:1100px;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab}
 .stage:active{cursor:grabbing}
-.jersey{position:absolute;inset:0 0 34px;transform-style:preserve-3d;will-change:transform}
+.jersey{position:absolute;inset:6px 0 22px;transform-style:preserve-3d;will-change:transform}
 .face{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;backface-visibility:hidden;-webkit-backface-visibility:hidden}
-.face img{max-height:100%;max-width:92%;pointer-events:none;-webkit-user-drag:none;filter:drop-shadow(0 12px 18px rgba(0,0,0,.35))}
+.face img{max-height:100%;max-width:92%;pointer-events:none;-webkit-user-drag:none}
 .face.back{transform:rotateY(180deg)}
-.shadow{position:absolute;left:50%;bottom:6px;width:62%;height:26px;margin-left:-31%;border-radius:50%;
-  background:radial-gradient(closest-side,rgba(0,0,0,.55),transparent);transform-origin:center}
-.hint{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;background:rgba(11,31,75,.78);
-  padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;white-space:nowrap;transition:opacity .4s}
+.shadow{position:absolute;left:50%;bottom:2px;width:56%;height:22px;margin-left:-28%;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.55),transparent)}
+.hint{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;background:rgba(11,31,75,.8);display:flex;align-items:center;gap:6px;
+  padding:7px 13px;border-radius:999px;font-size:13px;font-weight:600;white-space:nowrap;transition:opacity .4s}
 .hint.hide{opacity:0}
-.views{display:flex;justify-content:center;gap:8px;margin-top:6px}
-.views button{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;padding:8px 18px;border-radius:999px;font-weight:600;font-size:14px}
+.views{display:flex;justify-content:center;gap:8px;margin-top:4px}
+.views button{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.28);color:#fff;padding:7px 16px;border-radius:999px;font-weight:600;font-size:13px}
 .views button[aria-pressed=true]{background:#fff;color:var(--navy);border-color:#fff}
-.feat{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;margin:16px 0 0;padding:0;list-style:none;font-size:13px;opacity:.85}
+.cta{margin-top:12px}
 
-/* ===== Sale strip ===== */
-.sale{background:var(--rojo);color:#fff;text-align:center;padding:10px 16px;font-weight:600;font-size:14px}
-.sale b{font-family:var(--head);font-size:18px;letter-spacing:.04em}
-.sale .cd{font-variant-numeric:tabular-nums;font-weight:800;background:rgba(0,0,0,.2);padding:2px 8px;border-radius:6px;margin-left:4px}
-
-/* ===== Cards / form ===== */
-main{padding:20px 0 48px}
-.card{background:#fff;border-radius:18px;padding:20px;box-shadow:0 1px 2px rgba(14,22,48,.06),0 8px 24px rgba(14,22,48,.06)}
-.card h2{font-size:26px;color:var(--navy)}
-.card h2 small{display:block;font-family:var(--body);text-transform:none;letter-spacing:0;font-size:14px;color:var(--suave);font-weight:400;margin-top:6px}
-.steps{display:flex;gap:6px;margin:0 0 14px}
-.steps i{flex:1;height:5px;border-radius:9px;background:var(--borde)}
-.steps i.on{background:var(--rojo)}
-.field{margin-top:18px}
-.field>label,.field>.lbl{display:block;font-weight:800;font-size:14px;margin-bottom:6px}
-.field .help{font-size:12.5px;color:var(--suave);margin:-2px 0 6px}
-input[type=text],input[type=tel]{width:100%;font-size:16px;padding:13px 14px;border:2px solid var(--borde);border-radius:12px;background:#fff;outline:none;transition:border-color .15s}
-input[type=text]:focus,input[type=tel]:focus{border-color:var(--navy)}
-.err{color:var(--rojo);font-size:13px;font-weight:600;margin-top:6px;min-height:0}
-.invalid input[type=text],.invalid input[type=tel]{border-color:var(--rojo)}
-.chips{display:flex;flex-wrap:wrap;gap:8px;border:0;padding:0;margin:0}
-.chips label{position:relative}
-.chips input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
-.chips span{display:inline-flex;align-items:center;justify-content:center;min-width:54px;height:46px;padding:0 14px;border:2px solid var(--borde);border-radius:12px;font-weight:800;font-family:var(--head);font-size:18px;letter-spacing:.03em;background:#fff;transition:all .12s}
-.chips input:checked+span{background:var(--navy);border-color:var(--navy);color:#fff}
-.chips input:focus-visible+span{outline:3px solid var(--rojo);outline-offset:2px}
-.invalid .chips span{border-color:#f1a5b1}
-details.guia{margin-top:10px;font-size:14px}
-details.guia summary{cursor:pointer;color:var(--navy);font-weight:600;text-decoration:underline;text-underline-offset:3px}
-table{border-collapse:collapse;width:100%;margin-top:8px;font-size:14px;text-align:center}
-th,td{padding:6px 4px;border-bottom:1px solid var(--borde)}
-th{font-size:12px;color:var(--suave);text-transform:uppercase;letter-spacing:.05em}
-td:first-child{font-weight:800}
-.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
-
-.precio{margin-top:22px;border-radius:14px;background:var(--navy);color:#fff;padding:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.precio .old{text-decoration:line-through;opacity:.6;font-size:15px;display:block}
-.precio .now{font-family:var(--head);font-size:34px;line-height:1}
-.badge{background:var(--rojo);color:#fff;font-weight:800;font-size:12px;padding:5px 10px;border-radius:999px;text-transform:uppercase;letter-spacing:.06em}
-.precio .cdl{font-size:12.5px;opacity:.85;width:100%}
-
-.btn{display:flex;width:100%;align-items:center;justify-content:center;gap:10px;margin-top:18px;border:0;border-radius:14px;padding:16px;font-family:var(--head);font-size:20px;letter-spacing:.05em;text-transform:uppercase;background:var(--rojo);color:#fff;box-shadow:0 6px 0 var(--rojo-osc);transition:transform .08s,box-shadow .08s,opacity .2s}
-.btn:active{transform:translateY(3px);box-shadow:0 3px 0 var(--rojo-osc)}
-.btn[disabled]{opacity:.65;cursor:progress}
-.btn.sec{background:#fff;color:var(--navy);border:2px solid var(--navy);box-shadow:none}
+/* ===== Botones ===== */
+.btn{display:flex;width:100%;align-items:center;justify-content:center;gap:10px;border:0;border-radius:14px;padding:14px;font-family:var(--head);font-size:20px;letter-spacing:.05em;text-transform:uppercase;
+  background:var(--rojo);color:#fff;box-shadow:0 5px 0 var(--rojo-osc);transition:transform .08s,box-shadow .08s,opacity .2s;text-decoration:none}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 var(--rojo-osc)}
+.btn[disabled]{opacity:.6;cursor:not-allowed}
+.btn[aria-busy=true]{cursor:progress}
 .spin{width:18px;height:18px;border:3px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp .8s linear infinite;display:none}
 .btn[aria-busy=true] .spin{display:inline-block}
 @keyframes sp{to{transform:rotate(360deg)}}
-.note{font-size:13px;color:var(--suave);margin:12px 0 0}
-.alert{border-radius:12px;padding:12px 14px;font-size:14px;margin-top:14px;font-weight:600}
-.alert.bad{background:#FDE2E1;color:#8A0B1F}
-.alert.info{background:#E6ECFA;color:var(--navy)}
-.alert.okk{background:#D9F2DC;color:#0F5A30}
+.link{background:none;border:0;padding:6px;color:var(--navy);font-weight:600;font-size:13.5px;text-decoration:underline;text-underline-offset:3px}
 
-/* Step 2 */
-.monto{text-align:center;margin:16px 0 4px}
-.monto .num{font-family:var(--head);font-size:52px;color:var(--navy);line-height:1}
-.monto .old{text-decoration:line-through;color:var(--suave)}
-.alias{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;border:2px dashed var(--navy);border-radius:14px;padding:10px 10px 10px 16px}
-.alias small{display:block;color:var(--suave);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
-.alias b{font-size:20px;word-break:break-all}
-.alias button{border:0;background:var(--navy);color:#fff;border-radius:10px;padding:10px 14px;font-weight:700;white-space:nowrap}
-ol.pasos{padding-left:20px;margin:16px 0 0;font-size:15px}
-ol.pasos li{margin:6px 0}
-.drop{display:block;margin-top:16px;border:2px dashed var(--borde);border-radius:14px;padding:18px;text-align:center;cursor:pointer;background:var(--gris);font-weight:600}
-.drop input{display:block;margin:10px auto 0;max-width:100%;font-size:14px}
+/* ===== Wizard ===== */
+.wiz{height:var(--vh);overflow:hidden;display:flex;justify-content:center;align-items:center;background:var(--gris);position:relative}
+.wiz.dark{background:linear-gradient(180deg,rgba(11,31,75,.82),rgba(90,12,37,.9)),url(assets/scrum.jpg) center 30%/cover no-repeat;color:#fff}
+.wiz-in{width:100%;max-width:480px;height:100%;max-height:720px;display:flex;flex-direction:column;padding:max(10px,env(safe-area-inset-top)) 16px max(12px,env(safe-area-inset-bottom))}
+.stepper{display:flex;gap:6px;list-style:none;margin:0 0 10px;padding:0;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--suave)}
+.stepper li{flex:1;display:flex;flex-direction:column;gap:5px}
+.stepper li::before{content:'';height:4px;border-radius:9px;background:var(--borde)}
+.stepper li.on{color:var(--rojo)}
+.stepper li.on::before{background:var(--rojo)}
+.wiz.dark .stepper li{color:rgba(255,255,255,.75)}
+.wiz.dark .stepper li.on{color:#fff}
+.wiz.dark .stepper li.on::before{background:#ff4d63}
+.paso{flex:1;min-height:0;display:flex;flex-direction:column}
+.paso h2{font-size:26px;color:var(--navy)}
+.wiz.dark .paso h2{color:#fff}
+.end{margin-top:auto;padding-top:10px}
+
+/* Box "Tu pedido": mismo componente y lugar en etapa 2 y 3 */
+.box{background:#fff;color:var(--texto);border:2px solid var(--rojo);border-left-width:6px;border-radius:12px;padding:9px 12px;margin-bottom:10px;
+  display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-size:13.5px;box-shadow:0 6px 20px rgba(11,31,75,.12);height:90px;align-content:center}
+.box .k{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--rojo)}
+.box .v{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.box .r{text-align:right}
+.box .tot{font-family:var(--head);font-size:22px;color:var(--navy);line-height:1}
+
+/* Etapa 1 */
+.field{margin-top:8px}
+.field>label,.field>.lbl{display:flex;justify-content:space-between;align-items:baseline;font-weight:800;font-size:13.5px;margin-bottom:4px}
+input[type=text],input[type=tel]{width:100%;font-size:16px;padding:10px 12px;border:2px solid var(--borde);border-radius:11px;background:#fff;outline:none;transition:border-color .15s}
+input[type=text]:focus,input[type=tel]:focus{border-color:var(--navy)}
+.err{color:var(--rojo);font-size:12px;font-weight:600;margin-top:2px}
+.err:empty{display:none}
+.invalid input[type=text],.invalid input[type=tel]{border-color:var(--rojo)}
+.chips{display:flex;gap:5px;border:0;padding:0;margin:0;min-width:0}
+.chips label{position:relative;flex:1;min-width:0}
+.chips input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer;width:100%;height:100%}
+.chips span{display:flex;align-items:center;justify-content:center;height:40px;border:2px solid var(--borde);border-radius:10px;font-weight:700;font-family:var(--head);font-size:16px;letter-spacing:.02em;background:#fff;transition:background .12s,border-color .12s,color .12s}
+#chipsTalle span{font-size:14.5px;letter-spacing:0}
+.chips input:checked+span{background:var(--navy);border-color:var(--navy);color:#fff}
+.chips input:focus-visible+span{outline:3px solid var(--rojo);outline-offset:2px}
+.invalid .chips span{border-color:#f1a5b1}
+.guia-btn{background:none;border:0;padding:0;color:var(--navy);font-weight:600;font-size:12.5px;text-decoration:underline;text-underline-offset:3px}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.precio{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--navy);color:#fff;border-radius:12px;padding:9px 14px}
+.precio small{display:block;opacity:.75;font-size:11.5px}
+.precio b{font-family:var(--head);font-size:26px;line-height:1}
+.alert{border-radius:10px;padding:8px 12px;font-size:13px;font-weight:600;margin-top:8px}
+.alert.bad{background:#FDE2E1;color:#8A0B1F}
+.alert.info{background:#E6ECFA;color:var(--navy);margin:0 0 8px}
+
+/* Etapa 2 */
+.pago{background:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 1px 2px rgba(14,22,48,.06)}
+.pago .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.pago .lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--suave)}
+.pago .monto{font-family:var(--head);font-size:34px;color:var(--navy);line-height:1}
+.alias{margin-top:10px;border:2px dashed var(--navy);border-radius:12px;padding:8px 8px 8px 12px}
+.alias b{font-size:19px;word-break:break-all}
+.alias button{border:0;background:var(--navy);color:#fff;border-radius:9px;padding:9px 12px;font-weight:700;font-size:13.5px;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.instr{font-size:13.5px;margin:10px 2px 0}
+.drop{display:flex;align-items:center;gap:12px;margin-top:10px;border:2px dashed var(--borde);border-radius:12px;padding:10px 12px;cursor:pointer;background:#fff;position:relative}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+.drop:focus-within{outline:3px solid var(--navy);outline-offset:2px}
 .drop.has{border-color:var(--ok);background:#EEF9F0}
-.preview{max-width:140px;max-height:160px;border-radius:8px;margin:10px auto 0;display:block}
-.resumen{margin-top:12px;font-size:14px;background:var(--gris);border-radius:12px;padding:12px 14px}
-.resumen div{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
-.resumen span{color:var(--suave)}
-.big-ok{font-size:54px;text-align:center;line-height:1;margin-top:6px}
-.linkbox{word-break:break-all;font-size:13px;background:var(--gris);padding:8px 10px;border-radius:8px;margin-top:6px}
-footer{text-align:center;color:var(--suave);font-size:12.5px;padding:0 16px 32px}
-[hidden]{display:none!important}
+.drop .t{font-weight:700;font-size:14px}
+.drop .s{font-size:12px;color:var(--suave);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+.drop .ico{width:44px;height:44px;border-radius:9px;background:var(--gris);display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--navy)}
+.drop .ico img{width:100%;height:100%;object-fit:cover}
+.otro{display:block;margin:4px auto 0}
+
+/* Etapa 3 */
+.listo{text-align:center;margin:auto 0}
+.listo .check{width:64px;height:64px;border-radius:50%;background:var(--ok);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;box-shadow:0 0 0 8px rgba(27,138,75,.25)}
+.listo p{font-size:15.5px;margin:10px auto 0;max-width:24em;opacity:.95}
+.listo h2{font-size:34px}
+
+dialog{border:0;border-radius:16px;padding:16px;max-width:340px;width:calc(100% - 32px);color:var(--texto)}
+dialog::backdrop{background:rgba(11,31,75,.6)}
+dialog h3{font-family:var(--head);text-transform:uppercase;margin:0;font-size:20px;color:var(--navy)}
+dialog .hd{display:flex;justify-content:space-between;align-items:center}
+dialog .x{border:0;background:var(--gris);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center}
+table{border-collapse:collapse;width:100%;margin-top:8px;font-size:14px;text-align:center}
+th,td{padding:5px 4px;border-bottom:1px solid var(--borde)}
+th{font-size:11.5px;color:var(--suave);text-transform:uppercase;letter-spacing:.05em}
+td:first-child{font-weight:800}
+.note{font-size:12px;color:var(--suave);margin:8px 0 0}
+.demo{position:fixed;right:0;bottom:0;pointer-events:none;opacity:.8;z-index:5;background:#FFF4CC;color:#5a4500;font-size:9px;font-weight:700;padding:2px 6px;border-radius:6px 0 0 0}
 
 @media (min-width:900px){
-  .hero .wrap{max-width:1000px;display:grid;grid-template-columns:1fr 1.1fr;align-items:center;gap:24px}
-  .hero .feat{justify-content:flex-start}
-  .stage{height:520px}
+  .hero-in{display:grid;grid-template-columns:1fr 1fr;column-gap:40px;
+    grid-template-rows:auto 1fr auto auto auto 1fr;grid-template-areas:"top top" ". viz" "h viz" "lead viz" "cta viz" ". viz"}
+  .top{grid-area:top}.hero h1{grid-area:h;font-size:clamp(48px,5.4vw,84px)}.lead{grid-area:lead}.viz{grid-area:viz;padding:12px 0}.cta{grid-area:cta;max-width:360px;margin-top:24px}
+  .wiz-in{padding-top:28px;padding-bottom:28px}
 }
-@media (prefers-reduced-motion:reduce){
-  *{transition:none!important;animation:none!important}
+@media (max-height:700px){
+  .hero h1{font-size:clamp(36px,10vw,64px);margin-top:8px}
+  .lead{font-size:14px}
+  .paso h2{font-size:22px}
+  .field{margin-top:6px}
 }
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
 
 <header class="hero">
-  <div class="wrap">
-    <div class="copy">
-      <div class="top"><span>Club Manuel Belgrano</span><span class="tag">Playoff 2026</span></div>
-      <h1>Musculosa<br><span>Los Guerreros</span></h1>
-      <p class="lead">La musculosa deportiva del club, con el escudo y el de Los Guerreros. Para alentar en la cancha y para el gimnasio de todos los días.</p>
-      <ul class="feat"><li>Rayas rojo y azul</li><li>Escudo del club</li><li>Tela deportiva</li></ul>
-    </div>
-    <div>
+  <div class="hero-in">
+    <div class="top"><span>Club Manuel Belgrano</span><span class="tag">Playoff 2026</span></div>
+    <h1>MUSCULOSA <span>LOS GUERREROS</span></h1>
+    <p class="lead">Tela deportiva. Para alentar en los playoffs y para el gimnasio de todos los días.</p>
+    <div class="viz">
       <div class="stage" id="stage" aria-label="Musculosa en 3D. Arrastrá para girarla.">
         <div class="jersey" id="jersey">
           <div class="face front"><img src="assets/front.png" alt="Frente de la musculosa: rayas rojas y azules con el escudo de Los Guerreros" draggable="false"></div>
           <div class="face back"><img src="assets/back.png" alt="Espalda de la musculosa: escudo del club y la leyenda Los Guerreros" draggable="false"></div>
         </div>
         <div class="shadow" id="shadow"></div>
-        <div class="hint" id="hint">↔ Arrastrá para girar</div>
+        <div class="hint" id="hint"><svg width="18" height="12" viewBox="0 0 18 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 6h16M5 2 1 6l4 4M13 2l4 4-4 4"/></svg>Arrastrá para girar</div>
       </div>
       <div class="views" role="group" aria-label="Vista">
         <button type="button" data-view="0" aria-pressed="true">Frente</button>
         <button type="button" data-view="180" aria-pressed="false">Espalda</button>
       </div>
     </div>
+    <a class="btn cta" href="#pedido" id="comprar">Comprala ahora</a>
   </div>
 </header>
 
-<div class="sale" id="saleStrip" hidden>
-  <b>SALE HOY · $10.000 OFF</b> pedí y pagá antes de las 23:59 <span class="cd" id="cdStrip">--:--:--</span>
-</div>
+<section class="wiz" id="pedido" aria-label="Pedido">
+  <div class="wiz-in">
+    <ol class="stepper" id="stepper">
+      <li class="on">1 Reserva</li><li>2 Pago</li><li>3 Listo</li>
+    </ol>
 
-<main class="wrap">
-  <!-- ===== Paso 1 ===== -->
-  <section class="card" id="step1" aria-labelledby="t1">
-    <div class="steps" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
-    <h2 id="t1">Hacé tu pedido<small>Una musculosa por pedido. Si querés más, enviá el formulario de nuevo.</small></h2>
-    <form id="form" novalidate>
+    <div class="box" id="box" hidden aria-label="Tu pedido">
+      <div class="k">Tu pedido <span id="bId"></span></div><div class="k r">Total</div>
+      <div class="v" id="bNombre"></div><div class="tot r" id="bTotal"></div>
+      <div class="v" id="bDet" style="grid-column:1/-1;font-weight:600;color:var(--suave)"></div>
+    </div>
+
+    <!-- ===== Etapa 1: Reserva ===== -->
+    <form class="paso" id="paso1" novalidate>
+      <h2>Reservá tu musculosa</h2>
       <div class="field" data-f="nombre">
         <label for="nombre">Nombre y apellido</label>
         <input type="text" id="nombre" name="nombre" autocomplete="name" maxlength="80" required>
-        <div class="err" aria-live="polite"></div>
-      </div>
-      <div class="field" data-f="apodo">
-        <label for="apodo">Nombre / apodo para la musculosa</label>
-        <input type="text" id="apodo" name="apodo" maxlength="30" autocapitalize="characters" required>
         <div class="err" aria-live="polite"></div>
       </div>
       <div class="field" data-f="division">
@@ -190,87 +221,84 @@ footer{text-align:center;color:var(--suave);font-size:12.5px;padding:0 16px 32px
         <div class="err" aria-live="polite"></div>
       </div>
       <div class="field" data-f="talle">
-        <span class="lbl" id="lblTalle">Talle</span>
+        <span class="lbl"><span id="lblTalle">Talle</span><button type="button" class="guia-btn" id="guiaBtn">Guía de talles</button></span>
         <fieldset class="chips" aria-labelledby="lblTalle" id="chipsTalle"></fieldset>
-        <details class="guia">
-          <summary>Guía de talles</summary>
-          <table>
-            <thead><tr><th>Talle</th><th>Alto (cm)</th><th>Ancho (cm)</th></tr></thead>
-            <tbody id="guia"></tbody>
-          </table>
-          <p class="note">Medidas aproximadas (±1 cm). Medí una musculosa tuya apoyada en una mesa y compará.</p>
-        </details>
         <div class="err" aria-live="polite"></div>
       </div>
       <div class="field" data-f="whatsapp">
-        <label for="whatsapp">WhatsApp</label>
-        <p class="help">Para avisarte cuando llegue. Con código de área, ej: 11 2345 6789</p>
-        <input type="tel" id="whatsapp" name="whatsapp" autocomplete="tel" inputmode="tel" maxlength="20" required>
+        <label for="whatsapp">WhatsApp <small style="font-weight:400;color:var(--suave)">con código de área</small></label>
+        <input type="tel" id="whatsapp" name="whatsapp" autocomplete="tel" inputmode="tel" maxlength="20" placeholder="11 2345 6789" required>
         <div class="err" aria-live="polite"></div>
       </div>
       <div class="hp" aria-hidden="true"><label>Web <input type="text" name="web" id="web" tabindex="-1" autocomplete="off"></label></div>
-
-      <div class="precio" id="precioBox"></div>
-      <div class="alert bad" id="err1" role="alert" hidden></div>
-      <button class="btn" type="submit" id="btn1"><span class="spin"></span><span class="lbl">Reservar mi musculosa</span></button>
-      <p class="note">Primero guardamos tu pedido, después pagás por transferencia y subís el comprobante.</p>
+      <div class="end">
+        <div class="precio"><div><small>Precio</small>Una musculosa por pedido</div><b>$38.000</b></div>
+        <div class="alert bad" id="err1" role="alert" hidden></div>
+        <button class="btn" type="submit" id="btn1" style="margin-top:10px"><span class="spin"></span><span class="lbl">Reservar mi musculosa</span></button>
+      </div>
     </form>
-  </section>
 
-  <!-- ===== Paso 2 ===== -->
-  <section class="card" id="step2" aria-labelledby="t2" hidden>
-    <div class="steps" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></div>
-    <div class="alert info" id="banner" hidden></div>
-    <h2 id="t2">Pagá y subí tu comprobante<small id="sub2"></small></h2>
-    <div class="monto"><div class="old" id="montoOld" hidden></div><div class="num" id="monto"></div><div class="note" id="montoNote"></div></div>
-    <div class="alias">
-      <div><small>Alias para transferir</small><b id="alias">dami.lizzano</b></div>
-      <button type="button" id="copy">Copiar alias</button>
+    <!-- ===== Etapa 2: Pago ===== -->
+    <div class="paso" id="paso2" hidden>
+      <div class="alert info" id="banner" hidden></div>
+      <div class="pago">
+        <div class="row"><span class="lbl">Transferí</span><span class="monto" id="monto"></span></div>
+        <div class="alias row">
+          <div><span class="lbl">Alias</span><br><b id="alias">dami.lizzano</b></div>
+          <button type="button" id="copy"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg><span>Copiar alias</span></button>
+        </div>
+      </div>
+      <p class="instr">Hacé la transferencia desde tu home banking y <b>volvé a esta página</b>: tu pedido queda guardado. Después subí el comprobante.</p>
+      <label class="drop" id="drop">
+        <span class="ico" id="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 11-8.5 8.5a5 5 0 0 1-7-7L14 4a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L15 7"/></svg></span>
+        <span><span class="t" id="dropT">Adjuntá el comprobante</span><span class="s" id="fileName">Foto o PDF, hasta 5 MB</span></span>
+        <input type="file" id="file" accept="image/*,application/pdf" aria-label="Adjuntar comprobante">
+      </label>
+      <div class="end">
+        <div class="alert bad" id="err2" role="alert" hidden></div>
+        <button class="btn" type="button" id="btn2" disabled style="margin-top:8px"><span class="spin"></span><span class="lbl">Enviar comprobante</span></button>
+        <button class="link otro" type="button" id="cancel2">Empezar un pedido nuevo</button>
+      </div>
     </div>
-    <ol class="pasos">
-      <li>Copiá el alias y hacé la transferencia desde tu home banking o billetera.</li>
-      <li><b>Volvé a esta página</b>: tu pedido queda guardado en este celular.</li>
-      <li>Sacale captura al comprobante y subilo acá abajo.</li>
-    </ol>
-    <label class="drop" id="drop">📎 Adjuntá el comprobante (foto o PDF, hasta 5 MB)
-      <input type="file" id="file" accept="image/*,application/pdf">
-      <img class="preview" id="preview" alt="Vista previa del comprobante" hidden>
-      <span class="note" id="fileName"></span>
-    </label>
-    <div class="alert bad" id="err2" role="alert" hidden></div>
-    <button class="btn" type="button" id="btn2" disabled><span class="spin"></span><span class="lbl">Enviar comprobante</span></button>
-    <div class="resumen" id="res2"></div>
-    <p class="note">¿Querés seguir desde otro dispositivo? Guardá este link:</p>
-    <div class="linkbox" id="link2"></div>
-    <button class="btn sec" type="button" id="cancel2">Empezar un pedido nuevo</button>
-  </section>
 
-  <!-- ===== Paso 3 ===== -->
-  <section class="card" id="step3" aria-labelledby="t3" hidden>
-    <div class="steps" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i></div>
-    <div class="big-ok" aria-hidden="true">💪</div>
-    <h2 id="t3" style="text-align:center">¡Listo, Guerrero!<small id="sub3"></small></h2>
-    <div class="alert" id="msg3"></div>
-    <div class="resumen" id="res3"></div>
-    <button class="btn" type="button" id="otro"><span class="lbl">Hacer otro pedido</span></button>
-  </section>
-</main>
-<footer>Club Manuel Belgrano · Los Guerreros · Playoff 2026<br><span id="modo"></span></footer>
+    <!-- ===== Etapa 3: Listo ===== -->
+    <div class="paso" id="paso3" hidden>
+      <div class="listo">
+        <div class="check"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17 19 7"/></svg></div>
+        <h2>Comprobante recibido</h2>
+        <p>Gracias, Guerrero. El club confirma el pago y te escribe por WhatsApp para coordinar la entrega.</p>
+      </div>
+      <div class="end">
+        <button class="btn" type="button" id="otro"><span class="lbl">Hacer otro pedido</span></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<dialog id="guia" aria-labelledby="guiaT">
+  <div class="hd"><h3 id="guiaT">Guía de talles</h3>
+    <button type="button" class="x" id="guiaX" aria-label="Cerrar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <table>
+    <thead><tr><th>Talle</th><th>Alto (cm)</th><th>Ancho (cm)</th></tr></thead>
+    <tbody id="guiaBody"></tbody>
+  </table>
+  <p class="note">Medidas aproximadas (±1 cm). Medí una musculosa tuya apoyada en una mesa y compará.</p>
+</dialog>
 
 <script>
 /* ======= Config ======= */
 const API_URL = 'https://script.google.com/macros/s/AKfycbym-oWFI0CR5nXHJFUUkzHHOnjIXV6bXBpYnx4uaJmPNT8n_WiJV4K3CFF_2vVWThwuNQ/exec'; // Pegá acá la URL /exec de Apps Script. Vacío = modo demo (simula todo en este navegador).
-const DEMO = !API_URL;
-const PRECIO = 38000, DESCUENTO = 10000, ALIAS = 'dami.lizzano';
-const FECHA_SALE = '2026-10-15'; // solo para el modo demo; en producción manda el servidor
+const DEMO = !API_URL || new URLSearchParams(location.search).has('demo'); // ?demo=1 para probar sin tocar la planilla
+const PRECIO = 38000, ALIAS = 'dami.lizzano';
 const DIVISIONES = ['M15','M16','M17','M19','PS'];
 const TALLES = [['XS',68,52],['S',71,55],['M',75,57],['L',78,60],['XL',82,64],['XXL',86,66],['XXXL',91,68]];
-const LS = 'musculosa-pedido';
+const LS = DEMO ? 'musculosa-pedido-demo' : 'musculosa-pedido';
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $ = s => document.querySelector(s);
 const pesos = n => '$' + Number(n).toLocaleString('es-AR');
+const behavior = reduce ? 'auto' : 'smooth';
 
-/* ======= Jersey 3D ======= */
+/* ======= Musculosa 3D ======= */
 (() => {
   const stage = $('#stage'), jersey = $('#jersey'), shadow = $('#shadow'), hint = $('#hint');
   const imgs = jersey.querySelectorAll('img'), btns = document.querySelectorAll('.views button');
@@ -299,8 +327,7 @@ const pesos = n => '$' + Number(n).toLocaleString('es-AR');
       angle += vel * 16 / 4;
       if (Math.abs(d) < 0.15 && Math.abs(vel) < 0.02) { angle = target; vel = 0; target = null; idleSince = t; }
     } else if (!reduce && t - idleSince > 2500) {           // vaivén suave de invitación
-      const base = nearest(angle);
-      angle = base + Math.sin((t - idleSince - 2500) / 900) * 14;
+      angle = nearest(angle) + Math.sin((t - idleSince - 2500) / 900) * 14;
     }
     render();
     if (target !== null || Math.abs(vel) > 0.05 || !reduce) raf = requestAnimationFrame(loop);
@@ -340,39 +367,7 @@ const pesos = n => '$' + Number(n).toLocaleString('es-AR');
   setTimeout(() => hint.classList.add('hide'), 6000);
 })();
 
-/* ======= Reloj del servidor + sale ======= */
-let offset = 0, saleFin = Date.parse(FECHA_SALE + 'T23:59:59.999-03:00'), saleIni = Date.parse(FECHA_SALE + 'T00:00:00-03:00');
-const now = () => Date.now() + offset;
-const saleOn = () => now() >= saleIni && now() <= saleFin;
-
-async function sync() {
-  try {
-    const r = DEMO ? { serverTime: Date.now(), saleFin } : await api('GET', '');
-    offset = r.serverTime - Date.now();
-    if (r.saleFin) { saleFin = r.saleFin; saleIni = r.saleFin - 86400000 + 1; }
-  } catch (e) { /* sin red: usamos el reloj local solo para mostrar */ }
-  tick();
-}
-function fmtCd(ms) {
-  const s = Math.max(0, Math.floor(ms / 1000));
-  return [s / 3600, s % 3600 / 60, s % 60].map(n => String(Math.floor(n)).padStart(2, '0')).join(':');
-}
-let lastSale = null;
-function tick() {
-  const on = saleOn(), cd = fmtCd(saleFin - now());
-  $('#saleStrip').hidden = !on;
-  $('#cdStrip').textContent = cd;
-  const c = $('#cdPrecio'); if (c) c.textContent = cd;
-  if (on !== lastSale) {
-    lastSale = on;
-    $('#precioBox').innerHTML = on
-      ? `<div><span class="old">${pesos(PRECIO)}</span><span class="now">${pesos(PRECIO - DESCUENTO)}</span></div>
-         <span class="badge">25% OFF hoy</span>
-         <div class="cdl">Termina en <b id="cdPrecio">${cd}</b> · vale si pedís y subís el comprobante antes de las 23:59</div>`
-      : `<div><span class="now">${pesos(PRECIO)}</span></div><span class="badge" style="background:#fff;color:var(--navy)">Precio final</span>`;
-  }
-}
-setInterval(tick, 1000);
+$('#comprar').addEventListener('click', e => { e.preventDefault(); $('#pedido').scrollIntoView({ behavior, block: 'start' }); });
 
 /* ======= API (real o demo) ======= */
 async function api(method, action, payload) {
@@ -392,126 +387,119 @@ async function api(method, action, payload) {
   } finally { clearTimeout(to); }
 }
 
-// Simula el backend con localStorage para poder previsualizar sin Apps Script.
+// Simula el backend con localStorage para previsualizar sin tocar la planilla.
 function demo(action, p) {
   return new Promise((ok, fail) => setTimeout(() => {
     const db = JSON.parse(localStorage.getItem('musculosa-demo-db') || '{"n":0,"rows":{}}');
     const save = () => localStorage.setItem('musculosa-demo-db', JSON.stringify(db));
-    const inSale = ms => ms >= saleIni && ms <= saleFin;
     if (action === 'crear') {
-      const n = ++db.n, id = 'G-' + String(n).padStart(4, '0'), t = Date.now(), d = inSale(t) ? DESCUENTO : 0;
-      db.rows[id] = { ...p, id, clave: Math.random().toString(36).slice(2, 12), fecha: t, descuento: d, total: PRECIO - d, estado: 'Pendiente de pago' };
+      const id = 'G-' + String(++db.n).padStart(4, '0');
+      db.rows[id] = { ...p, id, clave: Math.random().toString(36).slice(2, 12), total: PRECIO, estado: 'Pendiente de pago' };
       save();
-      ok({ ok: true, id, clave: db.rows[id].clave, fecha: t, total: PRECIO - d, descuento: d, saleProvisorio: d > 0, saleFin, alias: ALIAS });
+      ok({ ok: true, id, clave: db.rows[id].clave, total: PRECIO, alias: ALIAS });
     } else if (action === 'comprobante') {
       const r = db.rows[p.id];
       if (!r || r.clave !== p.clave) return fail(new Error('No encontramos el pedido ' + p.id + '.'));
-      const s = inSale(r.fecha) && inSale(Date.now()), d = s ? DESCUENTO : 0;
-      Object.assign(r, { descuento: d, total: PRECIO - d, estado: 'Comprobante recibido' }); save();
-      ok({ ok: true, id: r.id, total: r.total, descuento: d, saleAplicado: s });
+      r.estado = 'Comprobante recibido'; save();
+      ok({ ok: true, id: r.id, total: r.total });
     } else if (action === '' && p && p.id) {
       const r = db.rows[p.id];
       if (!r || r.clave !== p.k) return fail(new Error('No encontramos el pedido.'));
-      ok({ ok: true, ...r, saleProvisorio: r.descuento > 0 });
+      ok({ ok: true, ...r, alias: ALIAS });
     } else fail(new Error('Acción inválida.'));
   }, 700));
 }
 
-/* ======= Estado local ======= */
+/* ======= Estado y etapas ======= */
 const load = () => { try { return JSON.parse(localStorage.getItem(LS)); } catch (e) { return null; } };
 const store = s => { try { localStorage.setItem(LS, JSON.stringify(s)); } catch (e) {} };
 let state = load();
 
-function show(step) {
-  ['#step1', '#step2', '#step3'].forEach((s, i) => $(s).hidden = i + 1 !== step);
+function pedidoURL(id, k) {
+  const q = new URLSearchParams(id ? { pedido: id, k } : {});
+  if (DEMO && API_URL) q.set('demo', '1');
+  return location.pathname + (q.toString() ? '?' + q : '');
 }
-function resumenHTML(s) {
-  const d = s.data || {};
-  return [['Pedido', s.id], ['Nombre', d.nombre], ['Apodo', d.apodo], ['División', d.division], ['Talle', d.talle], ['Total', pesos(s.total)]]
-    .map(([k, v]) => `<div><span>${k}</span><b>${esc(v)}</b></div>`).join('');
+function renderBox() {
+  const d = state.data || {};
+  $('#bId').textContent = state.id;
+  $('#bNombre').textContent = d.nombre || '';
+  $('#bDet').textContent = `División ${d.division || '-'} · Talle ${d.talle || '-'}`;
+  $('#bTotal').textContent = pesos(PRECIO); // precio fijo: no dependemos del total que devuelva el servidor
 }
-const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-
-function renderStep2(restored) {
-  const s = state;
-  $('#monto').textContent = pesos(s.total);
-  $('#montoOld').hidden = !s.saleProvisorio;
-  $('#montoOld').textContent = pesos(PRECIO);
-  $('#montoNote').textContent = s.saleProvisorio
-    ? 'Precio sale: el descuento se confirma si subís el comprobante hoy antes de las 23:59.'
-    : '';
-  $('#sub2').textContent = 'Transferí el monto exacto al alias y adjuntá el comprobante.';
-  $('#alias').textContent = s.alias || ALIAS;
-  $('#res2').innerHTML = resumenHTML(s);
-  const link = location.origin + location.pathname + '?pedido=' + encodeURIComponent(s.id) + '&k=' + encodeURIComponent(s.clave);
-  $('#link2').textContent = link;
-  $('#banner').hidden = !restored;
-  $('#banner').textContent = `Tu pedido ${s.id} está reservado, solo falta el comprobante.`;
-  show(2);
-}
-function renderStep3() {
-  const s = state;
-  $('#sub3').textContent = `Recibimos el comprobante del pedido ${s.id}.`;
-  const m = $('#msg3');
-  if (s.saleAplicado) { m.className = 'alert okk'; m.textContent = `Entraste en el sale: pagás ${pesos(s.total)} en vez de ${pesos(PRECIO)}. El club confirma el pago y te escribe por WhatsApp.`; }
-  else if (s.perdioSale) { m.className = 'alert bad'; m.textContent = `El comprobante llegó después de las 23:59, así que el total queda en ${pesos(PRECIO)}. El club te va a contactar por la diferencia.`; }
-  else { m.className = 'alert okk'; m.textContent = 'El club confirma el pago y te escribe por WhatsApp.'; }
-  $('#res3').innerHTML = resumenHTML(s);
-  show(3);
+function goStage(n) {
+  [1, 2, 3].forEach(i => $('#paso' + i).hidden = i !== n);
+  document.querySelectorAll('#stepper li').forEach((li, i) => {
+    li.classList.toggle('on', i < n);
+    i === n - 1 ? li.setAttribute('aria-current', 'step') : li.removeAttribute('aria-current');
+  });
+  $('#box').hidden = n === 1;
+  if (n > 1) renderBox();
+  $('.hero').hidden = n > 1;                         // etapas 2 y 3: solo el wizard, una pantalla
+  $('#pedido').classList.toggle('dark', n === 3);
+  if (n > 1) scrollTo(0, 0);
 }
 function reset() {
   localStorage.removeItem(LS); state = null;
-  history.replaceState(null, '', location.pathname);
-  $('#form').reset(); clearFile(); show(1); scrollTo({ top: $('#step1').offsetTop - 10, behavior: reduce ? 'auto' : 'smooth' });
+  history.replaceState(null, '', pedidoURL());
+  $('#paso1').reset(); clearFile(); validar.on = false; limpiarErrores();
+  goStage(1);
+  $('#pedido').scrollIntoView({ behavior: 'auto', block: 'start' });
 }
 
-/* ======= Paso 1: formulario ======= */
+/* ======= Etapa 1: formulario ======= */
 $('#chipsDiv').innerHTML = DIVISIONES.map(d => `<label><input type="radio" name="division" value="${d}" required><span>${d}</span></label>`).join('');
 $('#chipsTalle').innerHTML = TALLES.map(([t]) => `<label><input type="radio" name="talle" value="${t}" required><span>${t}</span></label>`).join('');
-$('#guia').innerHTML = TALLES.map(([t, a, b]) => `<tr><td>${t}</td><td>${a}</td><td>${b}</td></tr>`).join('');
+$('#guiaBody').innerHTML = TALLES.map(([t, a, b]) => `<tr><td>${t}</td><td>${a}</td><td>${b}</td></tr>`).join('');
+const guia = $('#guia');
+$('#guiaBtn').addEventListener('click', () => guia.showModal());
+$('#guiaX').addEventListener('click', () => guia.close());
+guia.addEventListener('click', e => { if (e.target === guia) guia.close(); }); // click en el fondo cierra
 
-function waDigits(v) { return v.replace(/\D/g, ''); }
+const waDigits = v => v.replace(/\D/g, '');
+function limpiarErrores() {
+  document.querySelectorAll('.field[data-f]').forEach(el => { el.classList.remove('invalid'); el.querySelector('.err').textContent = ''; });
+}
 function validar(f) {
   const v = Object.fromEntries(new FormData(f));
   const errs = {};
-  if ((v.nombre || '').trim().length < 3 || !/\s/.test(v.nombre.trim())) errs.nombre = 'Poné tu nombre y apellido.';
-  if (!(v.apodo || '').trim()) errs.apodo = 'Poné el nombre o apodo para la musculosa.';
+  const nom = (v.nombre || '').trim();
+  if (nom.length < 3 || !/\s/.test(nom)) errs.nombre = 'Poné tu nombre y apellido.';
   if (!v.division) errs.division = 'Elegí tu división.';
   if (!v.talle) errs.talle = 'Elegí un talle.';
   const w = waDigits(v.whatsapp || '');
-  if (w.length < 10 || w.length > 13) errs.whatsapp = 'Revisá el número: código de área + número, ej: 11 2345 6789.';
+  if (w.length < 10 || w.length > 13) errs.whatsapp = 'Revisá el número: código de área + número.';
   document.querySelectorAll('.field[data-f]').forEach(el => {
     const e = errs[el.dataset.f];
     el.classList.toggle('invalid', !!e);
     el.querySelector('.err').textContent = e || '';
   });
+  validar.on = true;
   return { v, errs };
 }
-document.querySelectorAll('#form input').forEach(i => i.addEventListener('input', () => {
-  const el = i.closest('.field[data-f]');
-  if (el && el.classList.contains('invalid')) validar($('#form'));
-}));
+$('#paso1').addEventListener('input', () => { if (validar.on) validar($('#paso1')); });
 
 let sending = false;
-$('#form').addEventListener('submit', async e => {
+$('#paso1').addEventListener('submit', async e => {
   e.preventDefault();
   if (sending) return;
   const { v, errs } = validar(e.target);
   const first = Object.keys(errs)[0];
   if (first) { const el = document.querySelector(`.field[data-f="${first}"] input`); el && el.focus(); return; }
-  const data = { nombre: v.nombre.trim(), apodo: v.apodo.trim(), division: v.division, talle: v.talle, whatsapp: waDigits(v.whatsapp) };
+  const nombre = v.nombre.trim();
+  const data = { nombre, division: v.division, talle: v.talle, whatsapp: waDigits(v.whatsapp) };
   const btn = $('#btn1'), err = $('#err1');
   sending = true; btn.disabled = true; btn.setAttribute('aria-busy', 'true'); err.hidden = true;
   btn.querySelector('.lbl').textContent = 'Guardando…';
   const nonce = e.target.dataset.nonce || (e.target.dataset.nonce = (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random()));
   try {
-    const r = await api('POST', 'crear', { ...data, web: v.web, nonce });
-    state = { id: r.id, clave: r.clave, data, total: r.total, saleProvisorio: r.saleProvisorio, alias: r.alias, step: 2 };
+    // El backend pide "apodo": va el nombre y apellido (ya no hay campo aparte).
+    const r = await api('POST', 'crear', { ...data, apodo: nombre.slice(0, 30), web: v.web, nonce });
+    state = { id: r.id, clave: r.clave, data, total: r.total, alias: r.alias, step: 2 };
     store(state);
     delete e.target.dataset.nonce;
-    history.replaceState(null, '', '?pedido=' + encodeURIComponent(r.id) + '&k=' + encodeURIComponent(r.clave));
+    history.replaceState(null, '', pedidoURL(r.id, r.clave));
     renderStep2(false);
-    $('#step2').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
   } catch (x) {
     err.textContent = x.message + ' Tus datos siguen cargados, tocá el botón de nuevo.'; err.hidden = false;
   } finally {
@@ -520,17 +508,26 @@ $('#form').addEventListener('submit', async e => {
   }
 });
 
-/* ======= Paso 2: comprobante ======= */
+/* ======= Etapa 2: pago + comprobante ======= */
+function renderStep2(restored) {
+  $('#monto').textContent = pesos(PRECIO);
+  $('#alias').textContent = state.alias || ALIAS;
+  $('#banner').textContent = `Tu pedido ${state.id} está reservado, solo falta el comprobante.`;
+  $('#banner').hidden = !restored;
+  goStage(2);
+}
 $('#copy').addEventListener('click', async () => {
-  const a = $('#alias').textContent, b = $('#copy');
-  try { await navigator.clipboard.writeText(a); }
+  const lbl = $('#copy span');
+  try { await navigator.clipboard.writeText($('#alias').textContent); }
   catch (e) { const r = document.createRange(); r.selectNodeContents($('#alias')); getSelection().removeAllRanges(); getSelection().addRange(r); document.execCommand('copy'); }
-  b.textContent = '¡Copiado!'; setTimeout(() => b.textContent = 'Copiar alias', 1800);
+  lbl.textContent = 'Copiado'; setTimeout(() => lbl.textContent = 'Copiar alias', 1800);
 });
 
-let upload = null; // {mime, data(base64), url}
+const ICO = $('#ico').innerHTML;
+let upload = null; // {mime, data(base64)}
 function clearFile() {
-  upload = null; $('#file').value = ''; $('#preview').hidden = true; $('#fileName').textContent = '';
+  upload = null; $('#file').value = ''; $('#ico').innerHTML = ICO;
+  $('#dropT').textContent = 'Adjuntá el comprobante'; $('#fileName').textContent = 'Foto o PDF, hasta 5 MB';
   $('#drop').classList.remove('has'); $('#btn2').disabled = true;
 }
 const toB64 = blob => new Promise((ok, fail) => { const r = new FileReader(); r.onload = () => ok(r.result.split(',')[1]); r.onerror = fail; r.readAsDataURL(blob); });
@@ -556,9 +553,12 @@ $('#file').addEventListener('change', async e => {
     } else if (f.type !== 'application/pdf') throw new Error('Subí una imagen o un PDF.');
     if (blob.size > 5 * 1024 * 1024) throw new Error('El archivo pesa más de 5 MB. Probá con una captura de pantalla.');
     upload = { mime, data: await toB64(blob) };
+    $('#dropT').textContent = 'Comprobante listo';
     $('#fileName').textContent = f.name + ' · ' + Math.round(blob.size / 1024) + ' KB';
-    const p = $('#preview');
-    if (mime.startsWith('image/') && mime !== 'image/heic') { p.src = 'data:' + mime + ';base64,' + upload.data; p.hidden = false; } else p.hidden = true;
+    if (mime === 'image/jpeg' || mime === 'image/png' || mime === 'image/webp') {
+      const im = new Image(); im.alt = ''; im.src = 'data:' + mime + ';base64,' + upload.data;
+      $('#ico').replaceChildren(im);
+    }
     $('#drop').classList.add('has'); $('#btn2').disabled = false;
   } catch (x) { clearFile(); err.textContent = x.message || 'No pudimos leer el archivo.'; err.hidden = false; }
 });
@@ -570,8 +570,8 @@ $('#btn2').addEventListener('click', async () => {
   btn.querySelector('.lbl').textContent = 'Subiendo…';
   try {
     const r = await api('POST', 'comprobante', { id: state.id, clave: state.clave, mime: upload.mime, data: upload.data });
-    Object.assign(state, { step: 3, total: r.total, saleAplicado: r.saleAplicado, perdioSale: state.saleProvisorio && !r.saleAplicado });
-    store(state); clearFile(); renderStep3(); scrollTo({ top: $('#step3').offsetTop - 10, behavior: reduce ? 'auto' : 'smooth' });
+    Object.assign(state, { step: 3, total: r.total });
+    store(state); clearFile(); goStage(3);
   } catch (x) {
     err.textContent = x.message + ' Tu pedido sigue guardado, probá de nuevo.'; err.hidden = false; btn.disabled = false;
   } finally {
@@ -587,25 +587,22 @@ async function restore() {
   if (id && k && !(state && state.id === id)) {
     try {
       const r = await api('GET', '', { id, k });
-      state = { id, clave: k, data: { nombre: r.nombre, apodo: r.apodo, division: r.division, talle: r.talle }, total: r.total,
-        saleProvisorio: r.saleProvisorio, alias: r.alias, step: r.estado === 'Pendiente de pago' ? 2 : 3, saleAplicado: r.descuento > 0 };
+      state = { id, clave: k, data: { nombre: r.nombre, division: r.division, talle: r.talle }, total: r.total,
+        alias: r.alias, step: r.estado === 'Pendiente de pago' ? 2 : 3 };
       store(state);
     } catch (x) { $('#err1').textContent = x.message; $('#err1').hidden = false; }
   }
   if (state && state.step === 2) renderStep2(true);
-  else if (state && state.step === 3) renderStep3();
-  else return show(1);
-  $(state.step === 2 ? '#step2' : '#step3').scrollIntoView({ block: 'start' }); // volvés directo a tu pedido
+  else if (state && state.step === 3) goStage(3);
+  else goStage(1);
 }
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible') return;
-  sync();
   state = load() || state;
-  if (state && state.step === 2 && $('#step2').hidden === false) $('#banner').hidden = false;
+  if (state && state.step === 2 && !$('#paso2').hidden) $('#banner').hidden = false;
 });
 
-$('#modo').textContent = DEMO ? 'Modo demo: los pedidos se simulan en este navegador.' : '';
-sync();
+if (DEMO) document.body.insertAdjacentHTML('beforeend', '<div class="demo">Modo demo: no guarda en la planilla</div>');
 restore();
 </script>
 </body>

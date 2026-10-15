@@ -7,7 +7,7 @@
 // ===== Configuracion =====
 var PRECIO = 38000;                 // precio base en pesos
 var DESCUENTO = 10000;              // descuento del sale en pesos
-var FECHA_SALE = '2026-10-15';      // dia del sale (hora Argentina, 00:00 a 23:59:59)
+var FECHA_SALE = '2026-10-14';      // dia del sale (hora Argentina, 00:00 a 23:59:59)
 var ALIAS = 'dami.lizzano';         // alias para transferir
 var TZ = 'America/Argentina/Buenos_Aires';
 var TZ_OFFSET = '-03:00';           // Argentina no tiene horario de verano

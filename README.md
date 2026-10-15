@@ -6,6 +6,8 @@ Página de pedidos (relevamiento) + backend en Google Apps Script que guarda tod
 index.html            la página (todo en un archivo)
 assets/front.png      frente de la musculosa
 assets/back.png       espalda
+assets/hinchada.jpg   fondo del inicio
+assets/scrum.jpg      fondo de la pantalla final
 apps-script/Code.gs   backend
 ```
 
@@ -28,7 +30,8 @@ Con el primer pedido se crean solas las hojas **Pedidos** y **Resumen** (cantida
 
 - Cada pedido entra como **Pendiente de pago**. Cuando suben el comprobante pasa a **Comprobante recibido** con el link al archivo.
 - Cuando el club verifica la transferencia, cambia el Estado a **Pagado** a mano (hay un desplegable). También existe **Cancelado**.
-- **Sale**: vale solo si el pedido se hizo el 15/10/2026 **y** el comprobante llegó antes de las 23:59 (hora Argentina, según el reloj del servidor). Si no, la fila queda en $38.000 y la columna *Sale aplicado* lo dice.
+- **Sale** (terminó): valió para pedidos del 15/10/2026 con comprobante antes de las 23:59. Ahora la página muestra precio fijo de $38.000; el backend ya no aplica descuento.
+- La página ya no pide apodo: en la columna *Apodo* se guarda el nombre y apellido.
 - Precio, descuento, fecha del sale y alias se cambian en las constantes de arriba de `Code.gs`.
 - La columna oculta **Clave** protege el link de cada pedido; no la borres.
 - Para bajar un Excel: **Archivo > Descargar > Microsoft Excel (.xlsx)**.
@@ -42,4 +45,4 @@ Cualquiera de estas (subís la carpeta con `index.html` y `assets/`; `apps-scrip
 - **Cloudflare Pages**: Workers & Pages > Create > Pages > Upload assets > subí la carpeta.
 
 Para probar en la compu: `python -m http.server` dentro de la carpeta y abrí http://localhost:8000.
-Si `API_URL` está vacío la página funciona en **modo demo** (simula los pedidos en el navegador, no guarda nada en la planilla).
+Si `API_URL` está vacío, o abrís la página con `?demo=1` al final de la URL, funciona en **modo demo** (simula los pedidos en el navegador, no guarda nada en la planilla).
