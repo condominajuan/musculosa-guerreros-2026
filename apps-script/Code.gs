@@ -18,22 +18,20 @@ var TALLES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
 var MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/pdf'];
 var ESTADOS = ['Pendiente de pago', 'Comprobante recibido', 'Pago confirmado', 'Cancelado'];
 
-// Orden de columnas de la hoja Pedidos. El codigo busca cada columna por su titulo.
+// Orden de columnas de la hoja Pedidos. El codigo busca cada columna por su titulo
+// (si la planilla tiene columnas de mas, como una vieja "Clave", se ignoran).
 var HEADERS = ['ID', 'Fecha/Hora', 'Nombre y apellido', 'División', 'Talle', 'WhatsApp', 'Precio base',
-  'Estado', 'Pago confirmado', 'Comprobante', 'Fecha comprobante', 'Clave'];
+  'Estado', 'Pago confirmado', 'Comprobante', 'Fecha comprobante'];
 
 // ===== Endpoints =====
-function doGet(e) {
-  var p = (e && e.parameter) || {};
-  if (p.id) return json_(consultar_(String(p.id), String(p.k || '')));
+function doGet() {
   return json_({ ok: true, serverTime: Date.now(), precio: PRECIO, alias: ALIAS });
 }
 
 function doPost(e) {
   try {
     var body = JSON.parse((e && e.postData && e.postData.contents) || '{}');
-    if (body.action === 'crear') return json_(crear_(body));
-    if (body.action === 'comprobante') return json_(comprobante_(body));
+    if (body.action === 'comprobante') return json_(pedido_(body));
     return json_({ ok: false, error: 'Acción inválida.' });
   } catch (err) {
     console.error(err);
@@ -41,58 +39,25 @@ function doPost(e) {
   }
 }
 
-// ===== Acciones =====
-function crear_(b) {
-  // Honeypot: un humano no completa este campo.
-  if (b.web) return { ok: true, id: 'G-0000', clave: 'x', total: PRECIO };
+// ===== Accion =====
+/**
+ * El pedido se anota recien cuando llega el comprobante: datos + archivo en un solo POST.
+ * Idempotente por nonce: un reintento devuelve el mismo pedido sin duplicar fila ni archivo.
+ */
+function pedido_(b) {
+  // Honeypot: un humano no completa este campo. Respondemos "ok" falso para no darle pistas al bot.
+  if (b.web) return { ok: true, id: 'G-0000', total: PRECIO };
 
   var nombre = texto_(b.nombre, 80);
   var division = String(b.division || ''), talle = String(b.talle || '');
   var wa = String(b.whatsapp || '').replace(/\D/g, '');
+  var nonce = texto_(b.nonce, 64);
   if (nombre.length < 3) return err_('Completá tu nombre y apellido.');
   if (DIVISIONES.indexOf(division) < 0) return err_('Elegí una división válida.');
   if (TALLES.indexOf(talle) < 0) return err_('Elegí un talle válido.');
   if (wa.length < 10 || wa.length > 13) return err_('El WhatsApp no parece válido.');
+  if (nonce.length < 8) return err_('Pedido inválido. Recargá la página y probá de nuevo.');
 
-  // Idempotencia: si el cliente reintenta el mismo envio, devolvemos el mismo pedido.
-  var nonce = texto_(b.nonce, 64), cache = CacheService.getScriptCache();
-  if (nonce) {
-    var prev = cache.get('n:' + nonce);
-    if (prev) return JSON.parse(prev);
-  }
-
-  var lock = LockService.getScriptLock();
-  lock.waitLock(20000);
-  try {
-    var sh = hoja_(), col = cols_(sh);
-    var now = new Date();
-    var props = PropertiesService.getScriptProperties();
-    var n = Number(props.getProperty('ULTIMO_ID') || ultimaFila_(sh, col) - 1) + 1; // no se repite aunque borren filas
-    props.setProperty('ULTIMO_ID', String(n));
-    var id = 'G-' + ('000' + n).slice(-4);
-    var clave = Utilities.getUuid().replace(/-/g, '').slice(0, 10);
-
-    var fila = ultimaFila_(sh, col) + 1;
-    var row = HEADERS.map(function () { return ''; });
-    var set = function (h, v) { row[col[h] - 1] = v; };
-    set('ID', id); set('Fecha/Hora', now); set('Nombre y apellido', safe_(nombre));
-    set('División', division); set('Talle', talle); set('WhatsApp', "'" + wa);
-    set('Precio base', PRECIO); set('Estado', 'Pendiente de pago'); set('Pago confirmado', false);
-    set('Clave', clave);
-    sh.getRange(fila, 1, 1, row.length).setValues([row]);
-    sh.getRange(fila, col['Pago confirmado']).insertCheckboxes();
-    SpreadsheetApp.flush();
-
-    var res = { ok: true, id: id, clave: clave, fecha: now.getTime(), precio: PRECIO, total: PRECIO, alias: ALIAS };
-    if (nonce) cache.put('n:' + nonce, JSON.stringify(res), 21600);
-    return res;
-  } finally {
-    lock.releaseLock();
-  }
-}
-
-function comprobante_(b) {
-  var id = String(b.id || ''), clave = String(b.clave || '');
   var mime = String(b.mime || '').toLowerCase();
   if (MIMES.indexOf(mime) < 0) return err_('Formato no permitido. Subí una imagen o un PDF.');
   var bytes;
@@ -100,40 +65,46 @@ function comprobante_(b) {
   if (!bytes.length) return err_('El archivo está vacío.');
   if (bytes.length > MAX_BYTES) return err_('El archivo pesa más de 5 MB.');
 
+  var cache = CacheService.getScriptCache(), key = 'n:' + nonce;
+  var prev = cache.get(key);
+  if (prev) return JSON.parse(prev);
+
   var lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
-    var sh = hoja_(), col = cols_(sh);
-    var fila = buscarFila_(sh, col, id);
-    if (!fila) return err_('No encontramos el pedido ' + id + '.');
-    var get = function (h) { return sh.getRange(fila, col[h]).getValue(); };
-    if (String(get('Clave')) !== clave) return err_('El link del pedido no es válido.');
-    var estado = get('Estado');
-    if (estado === 'Pago confirmado' || estado === 'Cancelado') {
-      return err_('Este pedido ya está cerrado (' + estado + ').');
-    }
+    prev = cache.get(key);                 // otro reintento pudo terminar mientras esperabamos el lock
+    if (prev) return JSON.parse(prev);
 
+    var sh = hoja_(), col = cols_(sh);
     var now = new Date();
+    var props = PropertiesService.getScriptProperties();
+    var n = Number(props.getProperty('ULTIMO_ID') || ultimaFila_(sh, col) - 1) + 1; // no se repite aunque borren filas
+    var id = 'G-' + ('000' + n).slice(-4);
+
+    // 1) Archivo primero: si Drive falla, no queda fila ni ID consumido.
     var ext = mime === 'application/pdf' ? 'pdf' : mime.split('/')[1].replace('jpeg', 'jpg');
     var file = carpeta_().createFile(Utilities.newBlob(bytes, mime, id + '_' + now.getTime() + '.' + ext));
-    // El archivo queda privado (solo el dueño de la planilla lo ve).
-    sh.getRange(fila, col['Estado']).setValue('Comprobante recibido');
-    sh.getRange(fila, col['Comprobante']).setValue(file.getUrl());
-    sh.getRange(fila, col['Fecha comprobante']).setValue(now);
-    return { ok: true, id: id, total: PRECIO };
+    props.setProperty('ULTIMO_ID', String(n));
+
+    // 2) Fila completa de una sola vez.
+    var fila = ultimaFila_(sh, col) + 1;
+    var row = [];
+    for (var i = 0; i < sh.getLastColumn(); i++) row.push('');
+    var set = function (h, v) { row[col[h] - 1] = v; };
+    set('ID', id); set('Fecha/Hora', now); set('Nombre y apellido', safe_(nombre));
+    set('División', division); set('Talle', talle); set('WhatsApp', "'" + wa);
+    set('Precio base', PRECIO); set('Estado', 'Comprobante recibido'); set('Pago confirmado', false);
+    set('Comprobante', file.getUrl()); set('Fecha comprobante', now);
+    sh.getRange(fila, 1, 1, row.length).setValues([row]);
+    sh.getRange(fila, col['Pago confirmado']).insertCheckboxes();
+    SpreadsheetApp.flush();
+
+    var res = { ok: true, id: id, total: PRECIO };
+    cache.put(key, JSON.stringify(res), 21600);
+    return res;
   } finally {
     lock.releaseLock();
   }
-}
-
-function consultar_(id, clave) {
-  var sh = hoja_(), col = cols_(sh);
-  var fila = buscarFila_(sh, col, id);
-  if (!fila) return err_('No encontramos el pedido.');
-  var get = function (h) { return sh.getRange(fila, col[h]).getValue(); };
-  if (String(get('Clave')) !== clave) return err_('El link del pedido no es válido.');
-  return { ok: true, id: id, clave: clave, nombre: String(get('Nombre y apellido')).replace(/^'/, ''),
-    division: get('División'), talle: get('Talle'), total: PRECIO, estado: get('Estado'), alias: ALIAS };
 }
 
 // ===== Checkbox "Pago confirmado" (trigger simple, no pide permisos) =====
@@ -176,12 +147,6 @@ function ultimaFila_(sh, col) {
   var ids = sh.getRange(1, col['ID'], sh.getMaxRows(), 1).getValues();
   for (var i = ids.length - 1; i >= 1; i--) if (ids[i][0] !== '') return i + 1;
   return 1;
-}
-
-function buscarFila_(sh, col, id) {
-  if (!/^G-\d{4,}$/.test(id) || ultimaFila_(sh, col) < 2) return 0;
-  var cell = sh.getRange(2, col['ID'], ultimaFila_(sh, col) - 1, 1).createTextFinder(id).matchEntireCell(true).findNext();
-  return cell ? cell.getRow() : 0;
 }
 
 function libro_() {
@@ -257,7 +222,6 @@ function configurarPlanilla() {
     .setRanges([sh.getRange(2, 1, nF, sh.getLastColumn())]).build();
   sh.setConditionalFormatRules([filaPaga, regla('Pendiente de pago', '#FDE2E1'), regla('Comprobante recibido', '#FFF4CC'),
     regla('Cancelado', '#E0E0E0')]);
-  sh.hideColumns(col['Clave']);
   if (!sh.getFilter()) sh.getRange(1, 1, maxF, sh.getLastColumn()).createFilter();
 
   armarTodos_(ss, sh, col);

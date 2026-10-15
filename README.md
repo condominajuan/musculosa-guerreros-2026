@@ -28,7 +28,10 @@ La carpeta de Drive **Comprobantes Musculosa 2026** (privada) se crea con el pri
 
 ## 2. Cómo se usa la planilla
 
-- Cada pedido entra como **Pendiente de pago**. Cuando suben el comprobante pasa a **Comprobante recibido** con el link al archivo.
+- **Flujo web:** la persona completa sus datos (no se anota nada todavía), transfiere y sube el comprobante. Recién ahí el pedido se anota en **Pedidos Web**, con su ID (G-0001...), el estado **Comprobante recibido** y el link al archivo. Los pedidos web ya no pasan por *Pendiente de pago* (ese estado queda para el Forms y para destildar).
+- Si alguien cierra la página para ir al home banking, al volver (en el mismo celular/navegador) sigue en el paso del pago con sus datos. No hay link de pedido para retomarlo desde otro dispositivo.
+- Si el envío se corta y lo reintentan, no se duplica: cada reserva manda un código único (válido 6 horas).
+- La columna vieja **Clave** ya no se usa: podés borrarla o dejarla vacía.
 - Cuando el club verifica la transferencia, tilda la casilla **Pago confirmado** y el Estado pasa solo a *Pago confirmado* (destildar lo devuelve). El Estado también tiene *Cancelado* (desplegable).
 - **Todos** junta los pedidos del Forms del sale (hoja *Respuestas de formulario 1*, la columna con el check = pagó) y los de la web, con filtros en la fila 1.
 - **Dashboard**: cantidad de musculosas por división y talle (todas las reservas y solo pagos confirmados) y estado de pagos por división.

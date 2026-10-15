@@ -125,7 +125,7 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--navy)}
 .pago .monto{font-family:var(--head);font-size:34px;color:var(--navy);line-height:1}
 .alias{margin-top:7px;border:2px dashed var(--navy);border-radius:12px;padding:5px 6px 5px 12px}
 .alias b{font-size:19px;word-break:break-all}
-.alias button{border:0;background:var(--navy);color:#fff;border-radius:9px;padding:9px 12px;font-weight:700;font-size:13.5px;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.alias button{border:0;background:var(--navy);color:#fff;border-radius:9px;padding:8px 10px;font-weight:700;font-size:13.5px;white-space:nowrap;display:flex;align-items:center;gap:6px}
 .instr{font-size:13.5px;margin:10px 2px 0}
 .drop{display:flex;align-items:center;gap:12px;margin-top:10px;border:2px dashed var(--borde);border-radius:12px;padding:10px 12px;cursor:pointer;background:#fff;position:relative}
 .drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
@@ -248,11 +248,11 @@ td:first-child{font-weight:800}
           <button type="button" data-copy="alias"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg><span>Copiar</span></button>
         </div>
         <div class="alias row">
-          <div><span class="lbl">CBU</span><br><b id="cbu" style="font-size:16px;letter-spacing:.2px">0000168300000007490253</b></div>
+          <div><span class="lbl">CBU</span><br><b id="cbu" style="font-size:13.5px;letter-spacing:0;white-space:nowrap">0000168300000007490253</b></div>
           <button type="button" data-copy="cbu"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg><span>Copiar</span></button>
         </div>
       </div>
-      <p class="instr">Hacé la transferencia desde tu home banking y <b>volvé a esta página</b>: tu pedido queda guardado. Después subí el comprobante.</p>
+      <p class="instr" id="instr">Transferí desde tu home banking y <b>volvé a esta página</b>: tus datos quedan guardados acá. El pedido se confirma recién cuando subís el comprobante.</p>
       <label class="drop" id="drop">
         <span class="ico" id="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 11-8.5 8.5a5 5 0 0 1-7-7L14 4a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L15 7"/></svg></span>
         <span><span class="t" id="dropT">Adjuntá el comprobante</span><span class="s" id="fileName">Foto o PDF, hasta 5 MB</span></span>
@@ -374,62 +374,49 @@ const behavior = reduce ? 'auto' : 'smooth';
 $('#comprar').addEventListener('click', e => { e.preventDefault(); $('#pedido').scrollIntoView({ behavior, block: 'start' }); });
 
 /* ======= API (real o demo) ======= */
-async function api(method, action, payload) {
+// Un solo POST: datos + comprobante. Recién ahí se anota el pedido en la planilla.
+async function api(action, payload) {
   if (DEMO) return demo(action, payload);
-  const ctrl = new AbortController(), to = setTimeout(() => ctrl.abort(), 45000);
+  const ctrl = new AbortController(), to = setTimeout(() => ctrl.abort(), 60000);
   try {
-    const url = method === 'GET' ? API_URL + (payload ? '?' + new URLSearchParams(payload) : '') : API_URL;
-    const opts = method === 'GET' ? { signal: ctrl.signal }
-      : { method: 'POST', body: JSON.stringify({ action, ...payload }), signal: ctrl.signal }; // text/plain: sin preflight CORS
-    const res = await fetch(url, opts);
+    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action, ...payload }), signal: ctrl.signal }); // text/plain: sin preflight CORS
     const j = await res.json();
-    if (!j.ok && j.error) throw new Error(j.error);
+    if (!j.ok) throw new Error(j.error || 'No pudimos registrar el pedido.');
     return j;
   } catch (e) {
-    if (e.name === 'AbortError' || e instanceof TypeError) throw new Error('No pudimos conectarnos. Revisá tu conexión y probá de nuevo.');
+    if (e.name === 'AbortError' || e instanceof TypeError || e instanceof SyntaxError) throw new Error('No pudimos conectarnos con el servidor.');
     throw e;
   } finally { clearTimeout(to); }
 }
 
-// Simula el backend con localStorage para previsualizar sin tocar la planilla.
+// Simula el backend con localStorage (misma regla: la fila se crea al subir el comprobante, idempotente por nonce).
 function demo(action, p) {
   return new Promise((ok, fail) => setTimeout(() => {
-    const db = JSON.parse(localStorage.getItem('musculosa-demo-db') || '{"n":0,"rows":{}}');
-    const save = () => localStorage.setItem('musculosa-demo-db', JSON.stringify(db));
-    if (action === 'crear') {
-      const id = 'G-' + String(++db.n).padStart(4, '0');
-      db.rows[id] = { ...p, id, clave: Math.random().toString(36).slice(2, 12), total: PRECIO, estado: 'Pendiente de pago' };
-      save();
-      ok({ ok: true, id, clave: db.rows[id].clave, total: PRECIO, alias: ALIAS });
-    } else if (action === 'comprobante') {
-      const r = db.rows[p.id];
-      if (!r || r.clave !== p.clave) return fail(new Error('No encontramos el pedido ' + p.id + '.'));
-      r.estado = 'Comprobante recibido'; save();
-      ok({ ok: true, id: r.id, total: r.total });
-    } else if (action === '' && p && p.id) {
-      const r = db.rows[p.id];
-      if (!r || r.clave !== p.k) return fail(new Error('No encontramos el pedido.'));
-      ok({ ok: true, ...r, alias: ALIAS });
-    } else fail(new Error('Acción inválida.'));
+    const db = JSON.parse(localStorage.getItem('musculosa-demo-db') || '{"n":0,"rows":{},"nonces":{}}');
+    db.nonces = db.nonces || {};
+    if (action !== 'comprobante') return fail(new Error('Acción inválida.'));
+    if (db.nonces[p.nonce]) return ok({ ok: true, id: db.nonces[p.nonce], total: PRECIO });
+    const id = 'G-' + String(++db.n).padStart(4, '0');
+    db.rows[id] = { id, nombre: p.nombre, division: p.division, talle: p.talle, whatsapp: p.whatsapp, estado: 'Comprobante recibido', kb: Math.round(p.data.length * 0.75 / 1024) };
+    db.nonces[p.nonce] = id;
+    localStorage.setItem('musculosa-demo-db', JSON.stringify(db));
+    ok({ ok: true, id, total: PRECIO });
   }, 700));
 }
 
 /* ======= Estado y etapas ======= */
+// Etapa 2: {step:2, data, nonce, web}. Etapa 3: {step:3, id, data}. Solo en este navegador.
 const load = () => { try { return JSON.parse(localStorage.getItem(LS)); } catch (e) { return null; } };
 const store = s => { try { localStorage.setItem(LS, JSON.stringify(s)); } catch (e) {} };
+const uuid = () => crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
 let state = load();
 
-function pedidoURL(id, k) {
-  const q = new URLSearchParams(id ? { pedido: id, k } : {});
-  if (DEMO && API_URL) q.set('demo', '1');
-  return location.pathname + (q.toString() ? '?' + q : '');
-}
 function renderBox() {
   const d = state.data || {};
-  $('#bId').textContent = state.id;
+  $('#bId').textContent = state.step === 3 ? state.id : ''; // el ID existe recién cuando el servidor anota el pedido
   $('#bNombre').textContent = d.nombre || '';
   $('#bDet').textContent = `División ${d.division || '-'} · Talle ${d.talle || '-'}`;
-  $('#bTotal').textContent = pesos(PRECIO); // precio fijo: no dependemos del total que devuelva el servidor
+  $('#bTotal').textContent = pesos(PRECIO);
 }
 function goStage(n) {
   [1, 2, 3].forEach(i => $('#paso' + i).hidden = i !== n);
@@ -445,13 +432,12 @@ function goStage(n) {
 }
 function reset() {
   localStorage.removeItem(LS); state = null;
-  history.replaceState(null, '', pedidoURL());
-  $('#paso1').reset(); clearFile(); validar.on = false; limpiarErrores();
+  $('#paso1').reset(); clearFile(); validar.on = false; limpiarErrores(); $('#err2').hidden = true;
   goStage(1);
   $('#pedido').scrollIntoView({ behavior: 'auto', block: 'start' });
 }
 
-/* ======= Etapa 1: formulario ======= */
+/* ======= Etapa 1: formulario (sin servidor) ======= */
 $('#chipsDiv').innerHTML = DIVISIONES.map(d => `<label><input type="radio" name="division" value="${d}" required><span>${d}</span></label>`).join('');
 $('#chipsTalle').innerHTML = TALLES.map(([t]) => `<label><input type="radio" name="talle" value="${t}" required><span>${t}</span></label>`).join('');
 $('#guiaBody').innerHTML = TALLES.map(([t, a, b]) => `<tr><td>${t}</td><td>${a}</td><td>${b}</td></tr>`).join('');
@@ -483,41 +469,24 @@ function validar(f) {
 }
 $('#paso1').addEventListener('input', () => { if (validar.on) validar($('#paso1')); });
 
-let sending = false;
-$('#paso1').addEventListener('submit', async e => {
+$('#paso1').addEventListener('submit', e => {
   e.preventDefault();
-  if (sending) return;
   const { v, errs } = validar(e.target);
   const first = Object.keys(errs)[0];
   if (first) { const el = document.querySelector(`.field[data-f="${first}"] input`); el && el.focus(); return; }
-  const nombre = v.nombre.trim();
-  const data = { nombre, division: v.division, talle: v.talle, whatsapp: waDigits(v.whatsapp) };
-  const btn = $('#btn1'), err = $('#err1');
-  sending = true; btn.disabled = true; btn.setAttribute('aria-busy', 'true'); err.hidden = true;
-  btn.querySelector('.lbl').textContent = 'Guardando…';
-  const nonce = e.target.dataset.nonce || (e.target.dataset.nonce = (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random()));
-  try {
-    // El backend pide "apodo": va el nombre y apellido (ya no hay campo aparte).
-    const r = await api('POST', 'crear', { ...data, apodo: nombre.slice(0, 30), web: v.web, nonce });
-    state = { id: r.id, clave: r.clave, data, total: r.total, alias: r.alias, step: 2 };
-    store(state);
-    delete e.target.dataset.nonce;
-    history.replaceState(null, '', pedidoURL(r.id, r.clave));
-    renderStep2(false);
-  } catch (x) {
-    err.textContent = x.message + ' Tus datos siguen cargados, tocá el botón de nuevo.'; err.hidden = false;
-  } finally {
-    sending = false; btn.disabled = false; btn.removeAttribute('aria-busy');
-    btn.querySelector('.lbl').textContent = 'Reservar mi musculosa';
-  }
+  state = { step: 2, nonce: uuid(), web: v.web || '',
+    data: { nombre: v.nombre.trim(), division: v.division, talle: v.talle, whatsapp: waDigits(v.whatsapp) } };
+  store(state);
+  renderStep2(false);
 });
 
 /* ======= Etapa 2: pago + comprobante ======= */
 function renderStep2(restored) {
   $('#monto').textContent = pesos(PRECIO);
-  $('#alias').textContent = ALIAS; // siempre el vigente, aunque el pedido guardado tenga otro
-  $('#banner').textContent = `Tu pedido ${state.id} está reservado, solo falta el comprobante.`;
+  $('#alias').textContent = ALIAS;
+  $('#banner').textContent = 'Tus datos están guardados en este dispositivo. Subí el comprobante para confirmar tu pedido.';
   $('#banner').hidden = !restored;
+  $('#instr').hidden = restored; // el aviso de "datos guardados" ya lo dice
   goStage(2);
 }
 document.querySelectorAll('[data-copy]').forEach(btn => btn.addEventListener('click', async () => {
@@ -567,43 +536,39 @@ $('#file').addEventListener('change', async e => {
   } catch (x) { clearFile(); err.textContent = x.message || 'No pudimos leer el archivo.'; err.hidden = false; }
 });
 
+let sending = false;
 $('#btn2').addEventListener('click', async () => {
-  if (sending || !upload || !state) return;
+  if (sending || !upload || !state || state.step !== 2) return;
   const btn = $('#btn2'), err = $('#err2');
   sending = true; btn.disabled = true; btn.setAttribute('aria-busy', 'true'); err.hidden = true;
-  btn.querySelector('.lbl').textContent = 'Subiendo…';
+  btn.querySelector('.lbl').textContent = 'Enviando…';
   try {
-    const r = await api('POST', 'comprobante', { id: state.id, clave: state.clave, mime: upload.mime, data: upload.data });
-    Object.assign(state, { step: 3, total: r.total });
+    // El mismo nonce en cada reintento: el servidor no duplica el pedido.
+    const r = await api('comprobante', { ...state.data, nonce: state.nonce, web: state.web || '', mime: upload.mime, data: upload.data });
+    state = { step: 3, id: r.id, data: state.data };
     store(state); clearFile(); goStage(3);
   } catch (x) {
-    err.textContent = x.message + ' Tu pedido sigue guardado, probá de nuevo.'; err.hidden = false; btn.disabled = false;
+    err.textContent = x.message + ' Tocá "Enviar comprobante" de nuevo: no se duplica el pedido.';
+    err.hidden = false; btn.disabled = false;
   } finally {
     sending = false; btn.removeAttribute('aria-busy'); btn.querySelector('.lbl').textContent = 'Enviar comprobante';
   }
 });
-$('#cancel2').addEventListener('click', () => { if (confirm('Tu pedido actual queda guardado en el club como pendiente de pago. ¿Empezar uno nuevo?')) reset(); });
+$('#cancel2').addEventListener('click', () => { if (confirm('Todavía no enviaste el comprobante, así que este pedido no quedó registrado. ¿Empezar uno nuevo?')) reset(); });
 $('#otro').addEventListener('click', reset);
 
-/* ======= Restaurar al volver (recarga, link, app del banco) ======= */
-async function restore() {
-  const q = new URLSearchParams(location.search), id = q.get('pedido'), k = q.get('k');
-  if (id && k && !(state && state.id === id)) {
-    try {
-      const r = await api('GET', '', { id, k });
-      state = { id, clave: k, data: { nombre: r.nombre, division: r.division, talle: r.talle }, total: r.total,
-        alias: r.alias, step: r.estado === 'Pendiente de pago' ? 2 : 3 };
-      store(state);
-    } catch (x) { $('#err1').textContent = x.message; $('#err1').hidden = false; }
-  }
-  if (state && state.step === 2) renderStep2(true);
-  else if (state && state.step === 3) goStage(3);
-  else goStage(1);
+/* ======= Restaurar al volver (recarga o app del banco): solo desde este navegador ======= */
+function restore() {
+  if (new URLSearchParams(location.search).has('pedido')) history.replaceState(null, '', location.pathname + (DEMO && API_URL ? '?demo=1' : '')); // links viejos
+  if (state && state.step === 2 && !state.nonce) state.nonce = uuid(); // estado guardado por la versión anterior
+  if (state && state.step === 2 && state.data) renderStep2(true);
+  else if (state && state.step === 3 && state.id) goStage(3);
+  else { state = null; goStage(1); }
 }
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible') return;
   state = load() || state;
-  if (state && state.step === 2 && !$('#paso2').hidden) $('#banner').hidden = false;
+  if (state && state.step === 2 && !$('#paso2').hidden) { $('#banner').hidden = false; $('#instr').hidden = true; }
 });
 
 if (DEMO) document.body.insertAdjacentHTML('beforeend', '<div class="demo">Modo demo: no guarda en la planilla</div>');
