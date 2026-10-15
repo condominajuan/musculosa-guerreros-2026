@@ -1,48 +1,31 @@
 /**
  * Musculosa Los Guerreros - Club Manuel Belgrano - Playoff 2026
  * Backend del relevamiento de pedidos (Google Apps Script, vinculado a la planilla).
- * Ver README.md para implementarlo como Aplicacion web.
+ * Ver README.md. Despues de pegar este codigo: Ejecutar > configurarPlanilla (una sola vez).
  */
 
 // ===== Configuracion =====
-var PRECIO = 38000;                 // precio base en pesos
-var DESCUENTO = 10000;              // descuento del sale en pesos
-var FECHA_SALE = '2026-10-14';      // dia del sale (hora Argentina, 00:00 a 23:59:59)
-var ALIAS = 'dami.lizzano';         // alias para transferir
-var TZ = 'America/Argentina/Buenos_Aires';
-var TZ_OFFSET = '-03:00';           // Argentina no tiene horario de verano
-var SHEET_ID = ''; // opcional: solo si el script NO está pegado dentro del Sheet
+var PRECIO = 38000;
+var ALIAS = 'dami.lizzano';
 var CARPETA = 'Comprobantes Musculosa 2026';
 var MAX_BYTES = 5 * 1024 * 1024;    // 5 MB por comprobante
+var SHEET_ID = '';                  // opcional: solo si el script NO esta pegado dentro del Sheet
+var HOJA_FORMS = 'Respuestas de formulario 1';   // pedidos del sale hecho por Google Forms
 
 var DIVISIONES = ['M15', 'M16', 'M17', 'M19', 'PS'];
 var TALLES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
 var MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/pdf'];
-var ESTADOS = ['Pendiente de pago', 'Comprobante recibido', 'Pagado', 'Cancelado'];
+var ESTADOS = ['Pendiente de pago', 'Comprobante recibido', 'Pago confirmado', 'Cancelado'];
 
-var HEADERS = ['ID', 'Fecha/Hora', 'Nombre y apellido', 'Apodo', 'División', 'Talle', 'WhatsApp',
-  'Precio base', 'Descuento', 'Total a pagar', 'Sale aplicado', 'Estado', 'Comprobante',
-  'Fecha comprobante', 'Clave'];
-// Indices de columna (1-based)
-var C = { ID: 1, FECHA: 2, DESC: 9, TOTAL: 10, SALE: 11, ESTADO: 12, COMP: 13, FCOMP: 14, CLAVE: 15 };
-
-// ===== Logica del sale (pura, testeable) =====
-function saleInicio_() { return Date.parse(FECHA_SALE + 'T00:00:00' + TZ_OFFSET); }
-function saleFin_() { return Date.parse(FECHA_SALE + 'T23:59:59.999' + TZ_OFFSET); }
-function enSale_(ms) { return ms >= saleInicio_() && ms <= saleFin_(); }
-
-/** El descuento vale si el PEDIDO se hizo el dia del sale y el COMPROBANTE llego antes de las 23:59 de ese dia. */
-function aplicaSale_(msPedido, msComprobante) {
-  return enSale_(msPedido) && msComprobante != null && enSale_(msComprobante);
-}
+// Orden de columnas de la hoja Pedidos. El codigo busca cada columna por su titulo.
+var HEADERS = ['ID', 'Fecha/Hora', 'Nombre y apellido', 'División', 'Talle', 'WhatsApp', 'Precio base',
+  'Estado', 'Pago confirmado', 'Comprobante', 'Fecha comprobante', 'Clave'];
 
 // ===== Endpoints =====
 function doGet(e) {
   var p = (e && e.parameter) || {};
   if (p.id) return json_(consultar_(String(p.id), String(p.k || '')));
-  var now = Date.now();
-  return json_({ ok: true, serverTime: now, saleActivo: enSale_(now), saleFin: saleFin_(),
-    precio: PRECIO, descuento: DESCUENTO, alias: ALIAS });
+  return json_({ ok: true, serverTime: Date.now(), precio: PRECIO, alias: ALIAS });
 }
 
 function doPost(e) {
@@ -59,14 +42,13 @@ function doPost(e) {
 
 // ===== Acciones =====
 function crear_(b) {
-  // Honeypot: un humano no completa este campo. Respondemos "ok" falso para no darle pistas al bot.
-  if (b.web) return { ok: true, id: 'G-0000', clave: 'x', total: PRECIO, saleProvisorio: false };
+  // Honeypot: un humano no completa este campo.
+  if (b.web) return { ok: true, id: 'G-0000', clave: 'x', total: PRECIO };
 
-  var nombre = texto_(b.nombre, 80), apodo = texto_(b.apodo, 30);
+  var nombre = texto_(b.nombre, 80);
   var division = String(b.division || ''), talle = String(b.talle || '');
   var wa = String(b.whatsapp || '').replace(/\D/g, '');
   if (nombre.length < 3) return err_('Completá tu nombre y apellido.');
-  if (!apodo) return err_('Completá el nombre/apodo para la musculosa.');
   if (DIVISIONES.indexOf(division) < 0) return err_('Elegí una división válida.');
   if (TALLES.indexOf(talle) < 0) return err_('Elegí un talle válido.');
   if (wa.length < 10 || wa.length > 13) return err_('El WhatsApp no parece válido.');
@@ -81,21 +63,26 @@ function crear_(b) {
   var lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
-    var sh = hoja_();
+    var sh = hoja_(), col = cols_(sh);
     var now = new Date();
-    var sale = enSale_(now.getTime());
-    var desc = sale ? DESCUENTO : 0;
     var props = PropertiesService.getScriptProperties();
-    var n = Number(props.getProperty('ULTIMO_ID') || sh.getLastRow() - 1) + 1; // contador: no se repite aunque borren filas
+    var n = Number(props.getProperty('ULTIMO_ID') || sh.getLastRow() - 1) + 1; // no se repite aunque borren filas
     props.setProperty('ULTIMO_ID', String(n));
     var id = 'G-' + ('000' + n).slice(-4);
     var clave = Utilities.getUuid().replace(/-/g, '').slice(0, 10);
-    sh.appendRow([id, now, safe_(nombre), safe_(apodo), division, talle, "'" + wa,
-      PRECIO, desc, PRECIO - desc, sale ? 'Provisorio (falta comprobante)' : 'No',
-      'Pendiente de pago', '', '', clave]);
+
+    var fila = sh.getLastRow() + 1;
+    var row = HEADERS.map(function () { return ''; });
+    var set = function (h, v) { row[col[h] - 1] = v; };
+    set('ID', id); set('Fecha/Hora', now); set('Nombre y apellido', safe_(nombre));
+    set('División', division); set('Talle', talle); set('WhatsApp', "'" + wa);
+    set('Precio base', PRECIO); set('Estado', 'Pendiente de pago'); set('Pago confirmado', false);
+    set('Clave', clave);
+    sh.getRange(fila, 1, 1, row.length).setValues([row]);
+    sh.getRange(fila, col['Pago confirmado']).insertCheckboxes();
     SpreadsheetApp.flush();
-    var res = { ok: true, id: id, clave: clave, fecha: now.getTime(), precio: PRECIO,
-      descuento: desc, total: PRECIO - desc, saleProvisorio: sale, saleFin: saleFin_(), alias: ALIAS };
+
+    var res = { ok: true, id: id, clave: clave, fecha: now.getTime(), precio: PRECIO, total: PRECIO, alias: ALIAS };
     if (nonce) cache.put('n:' + nonce, JSON.stringify(res), 21600);
     return res;
   } finally {
@@ -115,41 +102,52 @@ function comprobante_(b) {
   var lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
-    var sh = hoja_();
-    var fila = buscarFila_(sh, id);
+    var sh = hoja_(), col = cols_(sh);
+    var fila = buscarFila_(sh, col, id);
     if (!fila) return err_('No encontramos el pedido ' + id + '.');
-    var row = sh.getRange(fila, 1, 1, HEADERS.length).getValues()[0];
-    if (String(row[C.CLAVE - 1]) !== clave) return err_('El link del pedido no es válido.');
-    if (row[C.ESTADO - 1] === 'Pagado' || row[C.ESTADO - 1] === 'Cancelado') {
-      return err_('Este pedido ya está cerrado (' + row[C.ESTADO - 1] + ').');
+    var get = function (h) { return sh.getRange(fila, col[h]).getValue(); };
+    if (String(get('Clave')) !== clave) return err_('El link del pedido no es válido.');
+    var estado = get('Estado');
+    if (estado === 'Pago confirmado' || estado === 'Cancelado') {
+      return err_('Este pedido ya está cerrado (' + estado + ').');
     }
 
     var now = new Date();
     var ext = mime === 'application/pdf' ? 'pdf' : mime.split('/')[1].replace('jpeg', 'jpg');
     var file = carpeta_().createFile(Utilities.newBlob(bytes, mime, id + '_' + now.getTime() + '.' + ext));
     // El archivo queda privado (solo el dueño de la planilla lo ve).
-
-    var msPedido = new Date(row[C.FECHA - 1]).getTime();
-    var sale = aplicaSale_(msPedido, now.getTime());
-    var desc = sale ? DESCUENTO : 0;
-    var saleTxt = sale ? 'Sí' : (enSale_(msPedido) ? 'No (comprobante fuera de término)' : 'No');
-    sh.getRange(fila, C.DESC, 1, 6).setValues([[desc, PRECIO - desc, saleTxt, 'Comprobante recibido',
-      file.getUrl(), now]]);
-    return { ok: true, id: id, total: PRECIO - desc, descuento: desc, saleAplicado: sale };
+    sh.getRange(fila, col['Estado']).setValue('Comprobante recibido');
+    sh.getRange(fila, col['Comprobante']).setValue(file.getUrl());
+    sh.getRange(fila, col['Fecha comprobante']).setValue(now);
+    return { ok: true, id: id, total: PRECIO };
   } finally {
     lock.releaseLock();
   }
 }
 
 function consultar_(id, clave) {
-  var sh = hoja_();
-  var fila = buscarFila_(sh, id);
+  var sh = hoja_(), col = cols_(sh);
+  var fila = buscarFila_(sh, col, id);
   if (!fila) return err_('No encontramos el pedido.');
-  var r = sh.getRange(fila, 1, 1, HEADERS.length).getValues()[0];
-  if (String(r[C.CLAVE - 1]) !== clave) return err_('El link del pedido no es válido.');
-  return { ok: true, id: id, clave: clave, apodo: String(r[3]).replace(/^'/, ''), division: r[4], talle: r[5],
-    nombre: String(r[2]).replace(/^'/, ''), total: r[C.TOTAL - 1], descuento: r[C.DESC - 1],
-    saleProvisorio: Number(r[C.DESC - 1]) > 0, estado: r[C.ESTADO - 1], alias: ALIAS, saleFin: saleFin_() };
+  var get = function (h) { return sh.getRange(fila, col[h]).getValue(); };
+  if (String(get('Clave')) !== clave) return err_('El link del pedido no es válido.');
+  return { ok: true, id: id, clave: clave, nombre: String(get('Nombre y apellido')).replace(/^'/, ''),
+    division: get('División'), talle: get('Talle'), total: PRECIO, estado: get('Estado'), alias: ALIAS };
+}
+
+// ===== Checkbox "Pago confirmado" (trigger simple, no pide permisos) =====
+function onEdit(e) {
+  if (!e || !e.range) return;
+  var sh = e.range.getSheet();
+  if (sh.getName() !== 'Pedidos' || e.range.getRow() < 2) return;
+  var col = cols_(sh);
+  if (e.range.getColumn() !== col['Pago confirmado']) return;
+  var r = e.range.getRow();
+  var estadoCel = sh.getRange(r, col['Estado']);
+  if (estadoCel.getValue() === 'Cancelado') return;
+  var pago = e.range.getValue() === true;
+  estadoCel.setValue(pago ? 'Pago confirmado'
+    : (sh.getRange(r, col['Comprobante']).getValue() ? 'Comprobante recibido' : 'Pendiente de pago'));
 }
 
 // ===== Helpers =====
@@ -164,9 +162,17 @@ function texto_(v, max) {
 /** Evita inyeccion de formulas en la planilla. */
 function safe_(s) { return /^[=+\-@\t\r]/.test(s) ? "'" + s : s; }
 
-function buscarFila_(sh, id) {
+/** Mapa titulo -> numero de columna (1-based), leido de la fila 1. */
+function cols_(sh) {
+  var h = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0], m = {};
+  h.forEach(function (t, i) { m[String(t).trim()] = i + 1; });
+  HEADERS.forEach(function (t) { if (!m[t]) throw new Error('Falta la columna "' + t + '" en Pedidos. Ejecutá configurarPlanilla.'); });
+  return m;
+}
+
+function buscarFila_(sh, col, id) {
   if (!/^G-\d{4,}$/.test(id) || sh.getLastRow() < 2) return 0;
-  var cell = sh.getRange(2, C.ID, sh.getLastRow() - 1, 1).createTextFinder(id).matchEntireCell(true).findNext();
+  var cell = sh.getRange(2, col['ID'], sh.getLastRow() - 1, 1).createTextFinder(id).matchEntireCell(true).findNext();
   return cell ? cell.getRow() : 0;
 }
 
@@ -175,57 +181,9 @@ function libro_() {
 }
 
 function hoja_() {
-  var ss = libro_();
-  var sh = ss.getSheetByName('Pedidos');
-  if (sh && sh.getLastRow() > 0) return sh;
-  sh = sh || ss.insertSheet('Pedidos');
-  sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS])
-    .setFontWeight('bold').setBackground('#0B1F4B').setFontColor('#FFFFFF');
-  sh.setFrozenRows(1);
-  sh.getRange('B:B').setNumberFormat('dd/MM/yyyy HH:mm:ss');
-  sh.getRange('N:N').setNumberFormat('dd/MM/yyyy HH:mm:ss');
-  sh.getRange('H:J').setNumberFormat('$#,##0');
-  sh.getRange('L2:L').setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(ESTADOS, true).build());
-  var est = sh.getRange('L2:L');
-  var regla = function (txt, color) {
-    return SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo(txt).setBackground(color).setRanges([est]).build();
-  };
-  sh.setConditionalFormatRules([regla('Pendiente de pago', '#FDE2E1'), regla('Comprobante recibido', '#FFF4CC'),
-    regla('Pagado', '#D9F2DC'), regla('Cancelado', '#E0E0E0')]);
-  sh.hideColumns(C.CLAVE);
-  resumen_(ss);
+  var sh = libro_().getSheetByName('Pedidos');
+  if (!sh) { configurarPlanilla(); sh = libro_().getSheetByName('Pedidos'); }
   return sh;
-}
-
-function resumen_(ss) {
-  if (ss.getSheetByName('Resumen')) return;
-  var r = ss.insertSheet('Resumen');
-  var rows = [['Talle', 'Pedidos', 'Con comprobante', 'Pagados']];
-  TALLES.forEach(function (t, i) {
-    var a = 'A' + (i + 2);
-    rows.push([t, '=COUNTIFS(Pedidos!F:F,' + a + ',Pedidos!L:L,"<>Cancelado")',
-      '=COUNTIFS(Pedidos!F:F,' + a + ',Pedidos!L:L,"Comprobante recibido")',
-      '=COUNTIFS(Pedidos!F:F,' + a + ',Pedidos!L:L,"Pagado")']);
-  });
-  rows.push(['Total', '=SUM(B2:B8)', '=SUM(C2:C8)', '=SUM(D2:D8)']);
-  rows.push(['', '', '', '']);
-  rows.push(['División', 'Pedidos', 'Con comprobante', 'Pagados']);
-  DIVISIONES.forEach(function (d, i) {
-    var a = 'A' + (i + 12);
-    rows.push([d, '=COUNTIFS(Pedidos!E:E,' + a + ',Pedidos!L:L,"<>Cancelado")',
-      '=COUNTIFS(Pedidos!E:E,' + a + ',Pedidos!L:L,"Comprobante recibido")',
-      '=COUNTIFS(Pedidos!E:E,' + a + ',Pedidos!L:L,"Pagado")']);
-  });
-  rows.push(['', '', '', '']);
-  rows.push(['Total cobrado (Pagado)', '=SUMIFS(Pedidos!J:J,Pedidos!L:L,"Pagado")', '', '']);
-  rows.push(['A cobrar (con comprobante)', '=SUMIFS(Pedidos!J:J,Pedidos!L:L,"Comprobante recibido")', '', '']);
-  r.getRange(1, 1, rows.length, 4).setValues(rows);
-  [1, 11].forEach(function (h) {
-    r.getRange(h, 1, 1, 4).setFontWeight('bold').setBackground('#C8102E').setFontColor('#FFFFFF');
-  });
-  r.getRange('A9:D9').setFontWeight('bold');
-  r.getRange('B18:B19').setNumberFormat('$#,##0');
-  r.autoResizeColumn(1);
 }
 
 function carpeta_() {
@@ -237,23 +195,151 @@ function carpeta_() {
   return f;
 }
 
-/** Ejecutalo desde el editor (Ejecutar > testSale) para chequear la regla del sale. Mira el registro. */
-function testSale() {
-  var t = function (s) { return Date.parse(s); };
-  var casos = [
-    ['pedido y comprobante el 15', t('2026-10-15T10:00:00-03:00'), t('2026-10-15T23:00:00-03:00'), true],
-    ['pedido 23:59:30, comprobante 23:59:50', t('2026-10-15T23:59:30-03:00'), t('2026-10-15T23:59:50-03:00'), true],
-    ['pedido el 15, comprobante el 16 00:00:01', t('2026-10-15T20:00:00-03:00'), t('2026-10-16T00:00:01-03:00'), false],
-    ['pedido el 14', t('2026-10-14T23:59:00-03:00'), t('2026-10-15T09:00:00-03:00'), false],
-    ['pedido el 16', t('2026-10-16T00:00:00-03:00'), t('2026-10-16T00:01:00-03:00'), false],
-    ['pedido 15 00:00 justo', t('2026-10-15T00:00:00-03:00'), t('2026-10-15T00:05:00-03:00'), true],
-    ['sin comprobante', t('2026-10-15T10:00:00-03:00'), null, false],
-    ['UTC 02:59 del 16 = 23:59 AR del 15', t('2026-10-16T02:59:00Z'), t('2026-10-16T02:59:30Z'), true],
-    ['UTC 03:00 del 16 = 00:00 AR del 16', t('2026-10-15T12:00:00Z'), t('2026-10-16T03:00:00Z'), false]
-  ];
-  casos.forEach(function (c) {
-    var r = aplicaSale_(c[1], c[2]);
-    if (r !== c[3]) throw new Error('FALLA: ' + c[0]);
+// ===== Configuracion de la planilla (ejecutar una vez desde el editor; se puede repetir sin romper nada) =====
+function configurarPlanilla() {
+  var ss = libro_();
+  var sh = ss.getSheetByName('Pedidos') || ss.insertSheet('Pedidos');
+
+  if (sh.getLastRow() === 0) {
+    sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
+  } else {
+    // Planilla existente: agrega la columna "Pago confirmado" justo despues de "Estado" si falta.
+    var h = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(String);
+    if (h.indexOf('Pago confirmado') < 0) {
+      var iE = h.indexOf('Estado');
+      if (iE < 0) throw new Error('No encuentro la columna Estado en Pedidos.');
+      sh.insertColumnAfter(iE + 1);
+      sh.getRange(1, iE + 2).setValue('Pago confirmado');
+    }
+  }
+  var col = cols_(sh);
+  var maxF = Math.max(sh.getMaxRows(), 2);
+  var nF = maxF - 1;
+
+  sh.getRange(1, 1, 1, sh.getLastColumn()).setFontWeight('bold').setBackground('#0B1F4B').setFontColor('#FFFFFF');
+  sh.setFrozenRows(1);
+  sh.getRange(2, col['Fecha/Hora'], nF, 1).setNumberFormat('dd/MM/yyyy HH:mm:ss');
+  sh.getRange(2, col['Fecha comprobante'], nF, 1).setNumberFormat('dd/MM/yyyy HH:mm:ss');
+  sh.getRange(2, col['Precio base'], nF, 1).setNumberFormat('$#,##0');
+  sh.getRange(2, col['WhatsApp'], nF, 1).setNumberFormat('@');
+  sh.getRange(2, col['Pago confirmado'], nF, 1).insertCheckboxes();
+
+  // Las filas que ya estaban pagadas (Estado) quedan tildadas.
+  var datos = sh.getLastRow() - 1;
+  if (datos > 0) {
+    var est = sh.getRange(2, col['Estado'], datos, 1).getValues();
+    sh.getRange(2, col['Pago confirmado'], datos, 1).setValues(est.map(function (r) {
+      return [r[0] === 'Pago confirmado' || r[0] === 'Pagado'];
+    }));
+    sh.getRange(2, col['Estado'], datos, 1).setValues(est.map(function (r) {
+      return [r[0] === 'Pagado' ? 'Pago confirmado' : r[0]];
+    }));
+  }
+
+  var rEst = sh.getRange(2, col['Estado'], nF, 1);
+  rEst.setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(ESTADOS, true).build());
+  var regla = function (txt, color) {
+    return SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo(txt).setBackground(color).setRanges([rEst]).build();
+  };
+  sh.setConditionalFormatRules([regla('Pendiente de pago', '#FDE2E1'), regla('Comprobante recibido', '#FFF4CC'),
+    regla('Pago confirmado', '#D9F2DC'), regla('Cancelado', '#E0E0E0')]);
+  sh.hideColumns(col['Clave']);
+  if (!sh.getFilter()) sh.getRange(1, 1, maxF, sh.getLastColumn()).createFilter();
+
+  armarTodos_(ss, sh, col);
+  armarDashboard_(ss);
+  var viejo = ss.getSheetByName('Resumen');
+  if (viejo) ss.deleteSheet(viejo);
+  SpreadsheetApp.flush();
+}
+
+function letra_(n) { return String.fromCharCode(64 + n); }
+
+/** Hoja "Todos": une los pedidos del Forms (sale) con los de la web, en una sola tabla con filtros. */
+function armarTodos_(ss, ped, col) {
+  var t = ss.getSheetByName('Todos') || ss.insertSheet('Todos');
+  t.clear();
+  var P = function (h) { return "Pedidos!$" + letra_(col[h]) + "$2:$" + letra_(col[h]); };
+  var F = "'" + HOJA_FORMS + "'!";
+  t.getRange(1, 1, 1, 7).setValues([['Origen', 'Fecha', 'Nombre', 'División', 'Talle', 'WhatsApp', 'Estado']])
+    .setFontWeight('bold').setBackground('#0B1F4B').setFontColor('#FFFFFF');
+  // Forms: la columna E (check) = pago confirmado. Web: se toma el Estado de Pedidos.
+  var forms = 'IFERROR(FILTER({ARRAYFORMULA(IF(' + F + '$A$2:$A<>"","Forms (sale)","")),' + F + '$A$2:$A,' +
+    'ARRAYFORMULA(TRIM(' + F + '$C$2:$C)),' + F + '$B$2:$B,' + F + '$D$2:$D,ARRAYFORMULA(IF(' + F + '$A$2:$A<>"","","")),' +
+    'ARRAYFORMULA(IF(TRIM(' + F + '$E$2:$E)="✔","Pago confirmado","Pendiente de pago"))},' + F + '$A$2:$A<>""),{"","","","","","",""})';
+  var web = 'IFERROR(FILTER({ARRAYFORMULA(IF(' + P('ID') + '<>"","Web","")),' + P('Fecha/Hora') + ',' + P('Nombre y apellido') + ',' +
+    P('División') + ',' + P('Talle') + ',' + P('WhatsApp') + ',' + P('Estado') + '},' + P('ID') + '<>""),{"","","","","","",""})';
+  t.getRange('A2').setFormula('=LET(a,{' + forms + ';' + web + '},FILTER(a,INDEX(a,,3)<>""))');
+  t.getRange('B2:B').setNumberFormat('dd/MM/yyyy HH:mm:ss');
+  t.setFrozenRows(1);
+  t.getRange('A1:G1000').createFilter();
+  t.autoResizeColumns(1, 7);
+}
+
+/** Hoja "Dashboard": cuantas musculosas por division x talle (lo que hay que pedirle al proveedor) y estado de pagos. */
+function armarDashboard_(ss) {
+  var d = ss.getSheetByName('Dashboard') || ss.insertSheet('Dashboard', 0);
+  d.clear();
+  d.setHiddenGridlines(true);
+  var head = function (r, c, n) {
+    d.getRange(r, c, 1, n).setFontWeight('bold').setBackground('#0B1F4B').setFontColor('#FFFFFF').setHorizontalAlignment('center');
+  };
+  var T = 'Todos!';
+  var nT = TALLES.length, nD = DIVISIONES.length;
+
+  d.getRange('A1').setValue('Musculosa Los Guerreros 2026').setFontSize(16).setFontWeight('bold');
+
+  // KPIs
+  d.getRange('A3:E3').setValues([['Reservadas', 'Pago confirmado', 'Comprobante por revisar', 'Pendientes de pago', 'Cancelados']]);
+  head(3, 1, 5);
+  d.getRange('A4:E4').setFormulas([['=COUNTA(' + T + 'C2:C)-COUNTIFS(' + T + 'G2:G,"Cancelado")',
+    '=COUNTIFS(' + T + 'G:G,"Pago confirmado")', '=COUNTIFS(' + T + 'G:G,"Comprobante recibido")',
+    '=COUNTIFS(' + T + 'G:G,"Pendiente de pago")', '=COUNTIFS(' + T + 'G:G,"Cancelado")']])
+    .setFontSize(18).setFontWeight('bold').setHorizontalAlignment('center');
+
+  // Matriz 1: todas las reservas (sin canceladas)
+  var matriz = function (fila, titulo, estadoCrit) {
+    d.getRange(fila, 1).setValue(titulo).setFontWeight('bold').setFontSize(12);
+    var enc = ['División'].concat(TALLES, ['Total']);
+    d.getRange(fila + 1, 1, 1, enc.length).setValues([enc]);
+    head(fila + 1, 1, enc.length);
+    var rows = [];
+    DIVISIONES.forEach(function (div, i) {
+      var r = fila + 2 + i, f = [div];
+      for (var c = 0; c < nT; c++) {
+        f.push('=COUNTIFS(' + T + '$D$2:$D,$A' + r + ',' + T + '$E$2:$E,' + letra_(c + 2) + '$' + (fila + 1) + ',' + estadoCrit + ')');
+      }
+      f.push('=SUM(B' + r + ':' + letra_(nT + 1) + r + ')');
+      rows.push(f);
+    });
+    var rt = fila + 2 + nD, tot = ['Total'];
+    for (var c = 0; c <= nT; c++) tot.push('=SUM(' + letra_(c + 2) + (fila + 2) + ':' + letra_(c + 2) + (rt - 1) + ')');
+    rows.push(tot);
+    d.getRange(fila + 2, 1, rows.length, nT + 2).setFormulas(rows).setHorizontalAlignment('center');
+    d.getRange(rt, 1, 1, nT + 2).setFontWeight('bold').setBorder(true, null, null, null, null, null);
+    d.getRange(fila + 2, nT + 2, nD + 1, 1).setFontWeight('bold');
+    d.getRange(fila + 2, 1, nD, 1).setFontWeight('bold').setHorizontalAlignment('left');
+    var rg = d.getRange(fila + 2, 2, nD, nT);
+    d.setConditionalFormatRules(d.getConditionalFormatRules().concat([SpreadsheetApp.newConditionalFormatRule()
+      .setGradientMinpoint('#FFFFFF').setGradientMaxpoint('#F4A3A9').setRanges([rg]).build()]));
+  };
+  matriz(6, 'Todas las reservas por división y talle (sin canceladas)', T + '$G$2:$G,"<>Cancelado"');
+  var f2 = 6 + 2 + nD + 3;
+  matriz(f2, 'Solo pagos confirmados por división y talle', T + '$G$2:$G,"Pago confirmado"');
+
+  // Estado de pagos por division
+  var f3 = f2 + 2 + nD + 3;
+  d.getRange(f3, 1).setValue('Estado por división').setFontWeight('bold').setFontSize(12);
+  d.getRange(f3 + 1, 1, 1, 4).setValues([['División', 'Pago confirmado', 'Comprobante por revisar', 'Pendiente de pago']]);
+  head(f3 + 1, 1, 4);
+  var rows3 = DIVISIONES.map(function (div, i) {
+    var r = f3 + 2 + i;
+    return [div].concat(['Pago confirmado', 'Comprobante recibido', 'Pendiente de pago'].map(function (e) {
+      return '=COUNTIFS(' + T + '$D$2:$D,$A' + r + ',' + T + '$G$2:$G,"' + e + '")';
+    }));
   });
-  console.log('testSale OK (' + casos.length + ' casos)');
+  d.getRange(f3 + 2, 1, nD, 4).setFormulas(rows3).setHorizontalAlignment('center');
+  d.getRange(f3 + 2, 1, nD, 1).setFontWeight('bold').setHorizontalAlignment('left');
+  d.setColumnWidths(1, 1, 130);
+  d.setColumnWidths(2, 8, 95);
 }
