@@ -10,7 +10,8 @@ var ALIAS = 'playoffs.2026';
 var CARPETA = 'Comprobantes Musculosa 2026';
 var MAX_BYTES = 5 * 1024 * 1024;    // 5 MB por comprobante
 var SHEET_ID = '';                  // opcional: solo si el script NO esta pegado dentro del Sheet
-var HOJA_FORMS = 'Respuestas de formulario 1';   // pedidos del sale hecho por Google Forms
+var HOJA_WEB = 'Pedidos Web';       // pedidos que entran por la landing
+var HOJA_FORMS = 'Pedidos Forms';   // pedidos del sale hecho por Google Forms
 
 var DIVISIONES = ['M15', 'M16', 'M17', 'M19', 'PS'];
 var TALLES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
@@ -66,12 +67,12 @@ function crear_(b) {
     var sh = hoja_(), col = cols_(sh);
     var now = new Date();
     var props = PropertiesService.getScriptProperties();
-    var n = Number(props.getProperty('ULTIMO_ID') || sh.getLastRow() - 1) + 1; // no se repite aunque borren filas
+    var n = Number(props.getProperty('ULTIMO_ID') || ultimaFila_(sh, col) - 1) + 1; // no se repite aunque borren filas
     props.setProperty('ULTIMO_ID', String(n));
     var id = 'G-' + ('000' + n).slice(-4);
     var clave = Utilities.getUuid().replace(/-/g, '').slice(0, 10);
 
-    var fila = sh.getLastRow() + 1;
+    var fila = ultimaFila_(sh, col) + 1;
     var row = HEADERS.map(function () { return ''; });
     var set = function (h, v) { row[col[h] - 1] = v; };
     set('ID', id); set('Fecha/Hora', now); set('Nombre y apellido', safe_(nombre));
@@ -139,7 +140,7 @@ function consultar_(id, clave) {
 function onEdit(e) {
   if (!e || !e.range) return;
   var sh = e.range.getSheet();
-  if (sh.getName() !== 'Pedidos' || e.range.getRow() < 2) return;
+  if (sh.getName() !== HOJA_WEB || e.range.getRow() < 2) return;
   var col = cols_(sh);
   if (e.range.getColumn() !== col['Pago confirmado']) return;
   var r = e.range.getRow();
@@ -170,9 +171,16 @@ function cols_(sh) {
   return m;
 }
 
+/** Ultima fila con un ID. No usa getLastRow(): las casillas y formatos de filas vacias lo inflan. */
+function ultimaFila_(sh, col) {
+  var ids = sh.getRange(1, col['ID'], sh.getMaxRows(), 1).getValues();
+  for (var i = ids.length - 1; i >= 1; i--) if (ids[i][0] !== '') return i + 1;
+  return 1;
+}
+
 function buscarFila_(sh, col, id) {
-  if (!/^G-\d{4,}$/.test(id) || sh.getLastRow() < 2) return 0;
-  var cell = sh.getRange(2, col['ID'], sh.getLastRow() - 1, 1).createTextFinder(id).matchEntireCell(true).findNext();
+  if (!/^G-\d{4,}$/.test(id) || ultimaFila_(sh, col) < 2) return 0;
+  var cell = sh.getRange(2, col['ID'], ultimaFila_(sh, col) - 1, 1).createTextFinder(id).matchEntireCell(true).findNext();
   return cell ? cell.getRow() : 0;
 }
 
@@ -181,8 +189,8 @@ function libro_() {
 }
 
 function hoja_() {
-  var sh = libro_().getSheetByName('Pedidos');
-  if (!sh) { configurarPlanilla(); sh = libro_().getSheetByName('Pedidos'); }
+  var sh = libro_().getSheetByName(HOJA_WEB);
+  if (!sh) { configurarPlanilla(); sh = libro_().getSheetByName(HOJA_WEB); }
   return sh;
 }
 
@@ -198,7 +206,7 @@ function carpeta_() {
 // ===== Configuracion de la planilla (ejecutar una vez desde el editor; se puede repetir sin romper nada) =====
 function configurarPlanilla() {
   var ss = libro_();
-  var sh = ss.getSheetByName('Pedidos') || ss.insertSheet('Pedidos');
+  var sh = ss.getSheetByName(HOJA_WEB) || ss.insertSheet(HOJA_WEB);
 
   if (sh.getLastRow() === 0) {
     sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
@@ -207,7 +215,7 @@ function configurarPlanilla() {
     var h = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(String);
     if (h.indexOf('Pago confirmado') < 0) {
       var iE = h.indexOf('Estado');
-      if (iE < 0) throw new Error('No encuentro la columna Estado en Pedidos.');
+      if (iE < 0) throw new Error('No encuentro la columna Estado en ' + HOJA_WEB + '.');
       sh.insertColumnAfter(iE + 1);
       sh.getRange(1, iE + 2).setValue('Pago confirmado');
     }
@@ -222,11 +230,13 @@ function configurarPlanilla() {
   sh.getRange(2, col['Fecha comprobante'], nF, 1).setNumberFormat('dd/MM/yyyy HH:mm:ss');
   sh.getRange(2, col['Precio base'], nF, 1).setNumberFormat('$#,##0');
   sh.getRange(2, col['WhatsApp'], nF, 1).setNumberFormat('@');
-  sh.getRange(2, col['Pago confirmado'], nF, 1).insertCheckboxes();
 
-  // Las filas que ya estaban pagadas (Estado) quedan tildadas.
-  var datos = sh.getLastRow() - 1;
+  // Casillas SOLO en filas con pedido (las filas vacias quedan limpias, asi no inflan getLastRow).
+  var datos = ultimaFila_(sh, col) - 1;
+  var vacias = sh.getRange(datos + 2, col['Pago confirmado'], Math.max(maxF - datos - 1, 1), 1);
+  if (datos + 2 <= maxF) { vacias.clearDataValidations(); vacias.clearContent(); }
   if (datos > 0) {
+    sh.getRange(2, col['Pago confirmado'], datos, 1).insertCheckboxes();
     var est = sh.getRange(2, col['Estado'], datos, 1).getValues();
     sh.getRange(2, col['Pago confirmado'], datos, 1).setValues(est.map(function (r) {
       return [r[0] === 'Pago confirmado' || r[0] === 'Pagado'];
@@ -263,13 +273,13 @@ function letra_(n) { return String.fromCharCode(64 + n); }
 function armarTodos_(ss, ped, col) {
   var t = ss.getSheetByName('Todos') || ss.insertSheet('Todos');
   t.clear();
-  var P = function (h) { return "Pedidos!$" + letra_(col[h]) + "$2:$" + letra_(col[h]); };
+  var P = function (h) { return "'" + HOJA_WEB + "'!$" + letra_(col[h]) + "$2:$" + letra_(col[h]); };
   var F = "'" + HOJA_FORMS + "'!";
   t.getRange(1, 1, 1, 7).setValues([['Origen', 'Fecha', 'Nombre', 'División', 'Talle', 'WhatsApp', 'Estado']])
     .setFontWeight('bold').setBackground('#0B1F4B').setFontColor('#FFFFFF');
   // Forms: la columna E (check) = pago confirmado. Web: se toma el Estado de Pedidos.
   var forms = 'IFERROR(FILTER({ARRAYFORMULA(IF(' + F + '$A$2:$A<>"","Forms (sale)","")),' + F + '$A$2:$A,' +
-    'ARRAYFORMULA(TRIM(' + F + '$C$2:$C)),' + F + '$B$2:$B,' + F + '$D$2:$D,ARRAYFORMULA(IF(' + F + '$A$2:$A<>"","","")),' +
+    'ARRAYFORMULA(TRIM(' + F + '$C$2:$C)),ARRAYFORMULA(TRIM(' + F + '$B$2:$B)),ARRAYFORMULA(TRIM(' + F + '$D$2:$D)),ARRAYFORMULA(IF(' + F + '$A$2:$A<>"","","")),' +
     'ARRAYFORMULA(IF(TRIM(' + F + '$E$2:$E)="✔","Pago confirmado","Pendiente de pago"))},' + F + '$A$2:$A<>""),{"","","","","","",""})';
   var web = 'IFERROR(FILTER({ARRAYFORMULA(IF(' + P('ID') + '<>"","Web","")),' + P('Fecha/Hora') + ',' + P('Nombre y apellido') + ',' +
     P('División') + ',' + P('Talle') + ',' + P('WhatsApp') + ',' + P('Estado') + '},' + P('ID') + '<>""),{"","","","","","",""})';
@@ -308,19 +318,23 @@ function armarDashboard_(ss) {
     var enc = ['División'].concat(TALLES, ['Total']);
     d.getRange(fila + 1, 1, 1, enc.length).setValues([enc]);
     head(fila + 1, 1, enc.length);
-    var rows = [];
+    var rows = [], etiquetas = [];
     DIVISIONES.forEach(function (div, i) {
-      var r = fila + 2 + i, f = [div];
+      var r = fila + 2 + i, f = [];
+      etiquetas.push([div]);
       for (var c = 0; c < nT; c++) {
         f.push('=COUNTIFS(' + T + '$D$2:$D,$A' + r + ',' + T + '$E$2:$E,' + letra_(c + 2) + '$' + (fila + 1) + ',' + estadoCrit + ')');
       }
       f.push('=SUM(B' + r + ':' + letra_(nT + 1) + r + ')');
       rows.push(f);
     });
-    var rt = fila + 2 + nD, tot = ['Total'];
+    var rt = fila + 2 + nD, tot = [];
+    etiquetas.push(['Total']);
     for (var c = 0; c <= nT; c++) tot.push('=SUM(' + letra_(c + 2) + (fila + 2) + ':' + letra_(c + 2) + (rt - 1) + ')');
     rows.push(tot);
-    d.getRange(fila + 2, 1, rows.length, nT + 2).setFormulas(rows).setHorizontalAlignment('center');
+    // Las etiquetas van con setValues: en setFormulas, 'PS' o 'M15' se tomaban como formula (=PS, =M15).
+    d.getRange(fila + 2, 1, etiquetas.length, 1).setValues(etiquetas);
+    d.getRange(fila + 2, 2, rows.length, nT + 1).setFormulas(rows).setHorizontalAlignment('center');
     d.getRange(rt, 1, 1, nT + 2).setFontWeight('bold').setBorder(true, null, null, null, null, null);
     d.getRange(fila + 2, nT + 2, nD + 1, 1).setFontWeight('bold');
     d.getRange(fila + 2, 1, nD, 1).setFontWeight('bold').setHorizontalAlignment('left');
@@ -339,11 +353,12 @@ function armarDashboard_(ss) {
   head(f3 + 1, 1, 4);
   var rows3 = DIVISIONES.map(function (div, i) {
     var r = f3 + 2 + i;
-    return [div].concat(['Pago confirmado', 'Comprobante recibido', 'Pendiente de pago'].map(function (e) {
+    return ['Pago confirmado', 'Comprobante recibido', 'Pendiente de pago'].map(function (e) {
       return '=COUNTIFS(' + T + '$D$2:$D,$A' + r + ',' + T + '$G$2:$G,"' + e + '")';
-    }));
+    });
   });
-  d.getRange(f3 + 2, 1, nD, 4).setFormulas(rows3).setHorizontalAlignment('center');
+  d.getRange(f3 + 2, 1, nD, 1).setValues(DIVISIONES.map(function (x) { return [x]; }));
+  d.getRange(f3 + 2, 2, nD, 3).setFormulas(rows3).setHorizontalAlignment('center');
   d.getRange(f3 + 2, 1, nD, 1).setFontWeight('bold').setHorizontalAlignment('left');
   d.setColumnWidths(1, 1, 130);
   d.setColumnWidths(2, 8, 95);
