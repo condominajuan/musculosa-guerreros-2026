@@ -363,3 +363,11 @@ function armarDashboard_(ss) {
   d.setColumnWidths(1, 1, 130);
   d.setColumnWidths(2, 8, 95);
 }
+
+/** Da acceso de solo lectura a la carpeta de comprobantes. Ejecutalo una vez desde el editor. Los archivos nuevos heredan el acceso. */
+function compartirComprobantes() {
+  var emails = ['lizzanojuanignacio@gmail.com'];
+  var f = carpeta_();
+  emails.forEach(function (e) { f.addViewer(e); });
+  console.log('Carpeta compartida (lectura) con: ' + emails.join(', ') + ' -> ' + f.getUrl());
+}
