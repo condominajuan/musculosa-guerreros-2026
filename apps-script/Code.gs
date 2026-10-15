@@ -21,7 +21,7 @@ var ESTADOS = ['Pendiente de pago', 'Comprobante recibido', 'Pago confirmado', '
 // Orden de columnas de la hoja Pedidos. El codigo busca cada columna por su titulo
 // (si la planilla tiene columnas de mas, como una vieja "Clave", se ignoran).
 var HEADERS = ['ID', 'Fecha/Hora', 'Nombre y apellido', 'División', 'Talle', 'WhatsApp', 'Precio base',
-  'Estado', 'Pago confirmado', 'Comprobante', 'Fecha comprobante'];
+  'Estado', 'Pago confirmado', 'Comprobante', 'Fecha comprobante', 'Avisar', 'Aviso enviado'];
 
 // ===== Endpoints =====
 function doGet() {
@@ -95,8 +95,10 @@ function pedido_(b) {
     set('División', division); set('Talle', talle); set('WhatsApp', "'" + wa);
     set('Precio base', PRECIO); set('Estado', 'Comprobante recibido'); set('Pago confirmado', false);
     set('Comprobante', file.getUrl()); set('Fecha comprobante', now);
+    set('Aviso enviado', false);
     sh.getRange(fila, 1, 1, row.length).setValues([row]);
     sh.getRange(fila, col['Pago confirmado']).insertCheckboxes();
+    sh.getRange(fila, col['Aviso enviado']).insertCheckboxes();
     SpreadsheetApp.flush();
 
     var res = { ok: true, id: id, total: PRECIO };
@@ -120,6 +122,38 @@ function onEdit(e) {
   var pago = e.range.getValue() === true;
   estadoCel.setValue(pago ? 'Pago confirmado'
     : (sh.getRange(r, col['Comprobante']).getValue() ? 'Comprobante recibido' : 'Pendiente de pago'));
+  // Al confirmar el pago aparece el link para avisar por WhatsApp; al destildar se borra.
+  sh.getRange(r, col['Avisar']).setFormula(pago ? avisoFormula_(sh, col, r) : '');
+}
+
+// ===== Aviso por WhatsApp (link wa.me con el mensaje armado; se envia con un clic) =====
+function mensaje_(nombre, id, division, talle) {
+  var primero = String(nombre).trim().split(' ')[0];
+  return 'Hola ' + primero + '! Te confirmamos tu pedido ' + id + ': musculosa Los Guerreros, división ' + division +
+    ', talle ' + talle + '. Pago confirmado. Cuando tengamos novedades de la entrega te avisamos por acá. ' +
+    'Gracias por sumarte! Club Manuel Belgrano';
+}
+
+/** Normaliza un celular argentino a 549 + area + numero (10 digitos, sin 0 ni 15). Devuelve '' si no se puede. */
+function telAR_(raw) {
+  var d = String(raw).replace(/\D/g, '').replace(/^00/, '');
+  if (d.indexOf('54') === 0) d = d.slice(2);
+  if (d.charAt(0) === '9' && d.length > 10) d = d.slice(1);
+  d = d.replace(/^0/, '');
+  if (d.length === 12) {                       // area con 0 y 15: 011 15 xxxx xxxx ya sin 0 -> 11 15 ...
+    d = d.replace(/^(\d{2,4})15(\d{6,8})$/, '$1$2');
+  } else if (d.length === 11) {
+    for (var a = 2; a <= 4; a++) if (d.substr(a, 2) === '15' && d.length - 2 === 10) { d = d.slice(0, a) + d.slice(a + 2); break; }
+  }
+  return d.length === 10 && d.indexOf('15') !== 0 ? '549' + d : '';   // ningun codigo de area empieza con 15
+}
+
+function avisoFormula_(sh, col, r) {
+  var v = function (h) { return sh.getRange(r, col[h]).getValue(); };
+  var tel = telAR_(v('WhatsApp'));
+  if (!tel) return '="Revisar número"';
+  var url = 'https://wa.me/' + tel + '?text=' + encodeURIComponent(mensaje_(v('Nombre y apellido'), v('ID'), v('División'), v('Talle')));
+  return '=HYPERLINK("' + url + '","Avisar por WhatsApp")';
 }
 
 // ===== Helpers =====
@@ -185,6 +219,16 @@ function configurarPlanilla() {
       sh.getRange(1, iE + 2).setValue('Pago confirmado');
     }
   }
+  // Columnas nuevas (planilla existente): se agregan en orden, cada una despues de la anterior.
+  [['Avisar', 'Fecha comprobante'], ['Aviso enviado', 'Avisar']].forEach(function (par) {
+    var hh = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(function (x) { return String(x).trim(); });
+    if (hh.indexOf(par[0]) < 0) {
+      var ip = hh.indexOf(par[1]);
+      if (ip < 0) throw new Error('No encuentro la columna ' + par[1] + ' en ' + HOJA_WEB + '.');
+      sh.insertColumnAfter(ip + 1);
+      sh.getRange(1, ip + 2).setValue(par[0]);
+    }
+  });
   var col = cols_(sh);
   var maxF = Math.max(sh.getMaxRows(), 2);
   var nF = maxF - 1;
@@ -198,10 +242,15 @@ function configurarPlanilla() {
 
   // Casillas SOLO en filas con pedido (las filas vacias quedan limpias, asi no inflan getLastRow).
   var datos = ultimaFila_(sh, col) - 1;
-  var vacias = sh.getRange(datos + 2, col['Pago confirmado'], Math.max(maxF - datos - 1, 1), 1);
-  if (datos + 2 <= maxF) { vacias.clearDataValidations(); vacias.clearContent(); }
+  if (datos + 2 <= maxF) {
+    ['Pago confirmado', 'Aviso enviado'].forEach(function (h) {
+      var vacias = sh.getRange(datos + 2, col[h], maxF - datos - 1, 1);
+      vacias.clearDataValidations(); vacias.clearContent();
+    });
+  }
   if (datos > 0) {
     sh.getRange(2, col['Pago confirmado'], datos, 1).insertCheckboxes();
+    sh.getRange(2, col['Aviso enviado'], datos, 1).insertCheckboxes();
     var est = sh.getRange(2, col['Estado'], datos, 1).getValues();
     sh.getRange(2, col['Pago confirmado'], datos, 1).setValues(est.map(function (r) {
       return [r[0] === 'Pago confirmado' || r[0] === 'Pagado'];
@@ -209,6 +258,13 @@ function configurarPlanilla() {
     sh.getRange(2, col['Estado'], datos, 1).setValues(est.map(function (r) {
       return [r[0] === 'Pagado' ? 'Pago confirmado' : r[0]];
     }));
+  }
+
+  // Link de aviso para los pedidos que ya estan confirmados.
+  for (var r = 2; r <= datos + 1; r++) {
+    if (sh.getRange(r, col['Pago confirmado']).getValue() === true) {
+      sh.getRange(r, col['Avisar']).setFormula(avisoFormula_(sh, col, r));
+    }
   }
 
   var rEst = sh.getRange(2, col['Estado'], nF, 1);
