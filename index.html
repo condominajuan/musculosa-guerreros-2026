@@ -123,7 +123,7 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--navy)}
 .pago .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .pago .lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--suave)}
 .pago .monto{font-family:var(--head);font-size:34px;color:var(--navy);line-height:1}
-.alias{margin-top:10px;border:2px dashed var(--navy);border-radius:12px;padding:8px 8px 8px 12px}
+.alias{margin-top:7px;border:2px dashed var(--navy);border-radius:12px;padding:5px 6px 5px 12px}
 .alias b{font-size:19px;word-break:break-all}
 .alias button{border:0;background:var(--navy);color:#fff;border-radius:9px;padding:9px 12px;font-weight:700;font-size:13.5px;white-space:nowrap;display:flex;align-items:center;gap:6px}
 .instr{font-size:13.5px;margin:10px 2px 0}
@@ -244,8 +244,12 @@ td:first-child{font-weight:800}
       <div class="pago">
         <div class="row"><span class="lbl">Transferí</span><span class="monto" id="monto"></span></div>
         <div class="alias row">
-          <div><span class="lbl">Alias</span><br><b id="alias">dami.lizzano</b></div>
-          <button type="button" id="copy"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg><span>Copiar alias</span></button>
+          <div><span class="lbl">Alias</span> <b id="alias">playoffs.2026</b></div>
+          <button type="button" data-copy="alias"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg><span>Copiar</span></button>
+        </div>
+        <div class="alias row">
+          <div><span class="lbl">CBU</span><br><b id="cbu" style="font-size:16px;letter-spacing:.2px">0000168300000007490253</b></div>
+          <button type="button" data-copy="cbu"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg><span>Copiar</span></button>
         </div>
       </div>
       <p class="instr">Hacé la transferencia desde tu home banking y <b>volvé a esta página</b>: tu pedido queda guardado. Después subí el comprobante.</p>
@@ -289,7 +293,7 @@ td:first-child{font-weight:800}
 /* ======= Config ======= */
 const API_URL = 'https://script.google.com/macros/s/AKfycbym-oWFI0CR5nXHJFUUkzHHOnjIXV6bXBpYnx4uaJmPNT8n_WiJV4K3CFF_2vVWThwuNQ/exec'; // Pegá acá la URL /exec de Apps Script. Vacío = modo demo (simula todo en este navegador).
 const DEMO = !API_URL || new URLSearchParams(location.search).has('demo'); // ?demo=1 para probar sin tocar la planilla
-const PRECIO = 38000, ALIAS = 'dami.lizzano';
+const PRECIO = 38000, ALIAS = 'playoffs.2026';
 const DIVISIONES = ['M15','M16','M17','M19','PS'];
 const TALLES = [['XS',68,52],['S',71,55],['M',75,57],['L',78,60],['XL',82,64],['XXL',86,66],['XXXL',91,68]];
 const LS = DEMO ? 'musculosa-pedido-demo' : 'musculosa-pedido';
@@ -511,17 +515,17 @@ $('#paso1').addEventListener('submit', async e => {
 /* ======= Etapa 2: pago + comprobante ======= */
 function renderStep2(restored) {
   $('#monto').textContent = pesos(PRECIO);
-  $('#alias').textContent = state.alias || ALIAS;
+  $('#alias').textContent = ALIAS; // siempre el vigente, aunque el pedido guardado tenga otro
   $('#banner').textContent = `Tu pedido ${state.id} está reservado, solo falta el comprobante.`;
   $('#banner').hidden = !restored;
   goStage(2);
 }
-$('#copy').addEventListener('click', async () => {
-  const lbl = $('#copy span');
-  try { await navigator.clipboard.writeText($('#alias').textContent); }
-  catch (e) { const r = document.createRange(); r.selectNodeContents($('#alias')); getSelection().removeAllRanges(); getSelection().addRange(r); document.execCommand('copy'); }
-  lbl.textContent = 'Copiado'; setTimeout(() => lbl.textContent = 'Copiar alias', 1800);
-});
+document.querySelectorAll('[data-copy]').forEach(btn => btn.addEventListener('click', async () => {
+  const src = $('#' + btn.dataset.copy), lbl = btn.querySelector('span');
+  try { await navigator.clipboard.writeText(src.textContent); }
+  catch (e) { const r = document.createRange(); r.selectNodeContents(src); getSelection().removeAllRanges(); getSelection().addRange(r); document.execCommand('copy'); }
+  lbl.textContent = 'Copiado'; setTimeout(() => lbl.textContent = 'Copiar', 1800);
+}));
 
 const ICO = $('#ico').innerHTML;
 let upload = null; // {mime, data(base64)}

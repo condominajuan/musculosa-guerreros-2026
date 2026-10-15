@@ -6,7 +6,7 @@
 
 // ===== Configuracion =====
 var PRECIO = 38000;
-var ALIAS = 'dami.lizzano';
+var ALIAS = 'playoffs.2026';
 var CARPETA = 'Comprobantes Musculosa 2026';
 var MAX_BYTES = 5 * 1024 * 1024;    // 5 MB por comprobante
 var SHEET_ID = '';                  // opcional: solo si el script NO esta pegado dentro del Sheet
