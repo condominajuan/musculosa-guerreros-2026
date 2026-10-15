@@ -36,3 +36,4 @@ La carpeta de Drive **Comprobantes Musculosa 2026** (privada) se crea con el pri
 - **Todos** junta los pedidos del Forms del sale (hoja *Respuestas de formulario 1*, la columna con el check = pagó) y los de la web, con filtros en la fila 1.
 - **Dashboard**: cantidad de musculosas por división y talle (todas las reservas y solo pagos confirmados) y estado de pagos por división.
 - El precio ($38.000) y el alias se cambian en las constantes de arriba de `Code.gs`.
+- **Avisar por WhatsApp**: al tildar *Pago confirmado* aparece en la columna *Avisar* un link que abre WhatsApp con el mensaje armado (se edita en `mensaje_` de `Code.gs`). Los celulares se normalizan a formato 549 + área + número. Si el número no sirve dice *Revisar número*. Con la casilla *Aviso enviado* se marca a quién ya se le escribió.
