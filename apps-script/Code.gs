@@ -126,7 +126,7 @@ function onEdit(e) {
   sh.getRange(r, col['Avisar']).setFormula(pago ? avisoFormula_(sh, col, r) : '');
 }
 
-// ===== Aviso por WhatsApp (link wa.me con el mensaje armado; se envia con un clic) =====
+// ===== Aviso por WhatsApp (link de WhatsApp con el mensaje armado; se envia con un clic) =====
 var EMOJI_ESPADAS = '%20%E2%9A%94%EF%B8%8F';   // espacio + espadas cruzadas (U+2694 U+FE0F)
 function mensaje_(nombre, id, division, talle) {
   var primero = String(nombre).trim().split(' ')[0];
@@ -153,7 +153,8 @@ function avisoFormula_(sh, col, r) {
   var v = function (h) { return sh.getRange(r, col[h]).getValue(); };
   var tel = telAR_(v('WhatsApp'));
   if (!tel) return '="Revisar número"';
-  var url = 'https://wa.me/' + tel + '?text=' + encodeURIComponent(mensaje_(v('Nombre y apellido'), v('ID'), v('División'), v('Talle'))) +
+  // api.whatsapp.com y no wa.me: el redirect de wa.me reemplaza los emojis por '?' (probado).
+  var url = 'https://api.whatsapp.com/send/?phone=' + tel + '&text=' + encodeURIComponent(mensaje_(v('Nombre y apellido'), v('ID'), v('División'), v('Talle'))) +
     EMOJI_ESPADAS;   // emoji ya codificado en la URL: no depende de como el editor guarde el archivo
   return '=HYPERLINK("' + url + '","Avisar por WhatsApp")';
 }
