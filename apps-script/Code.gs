@@ -241,8 +241,12 @@ function configurarPlanilla() {
   var regla = function (txt, color) {
     return SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo(txt).setBackground(color).setRanges([rEst]).build();
   };
-  sh.setConditionalFormatRules([regla('Pendiente de pago', '#FDE2E1'), regla('Comprobante recibido', '#FFF4CC'),
-    regla('Pago confirmado', '#D9F2DC'), regla('Cancelado', '#E0E0E0')]);
+  // Pago confirmado: se pinta TODA la fila (va primero para que mande sobre el color de la celda Estado).
+  var filaPaga = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=$' + letra_(col['Estado']) + '2="Pago confirmado"').setBackground('#D9F2DC')
+    .setRanges([sh.getRange(2, 1, nF, sh.getLastColumn())]).build();
+  sh.setConditionalFormatRules([filaPaga, regla('Pendiente de pago', '#FDE2E1'), regla('Comprobante recibido', '#FFF4CC'),
+    regla('Cancelado', '#E0E0E0')]);
   sh.hideColumns(col['Clave']);
   if (!sh.getFilter()) sh.getRange(1, 1, maxF, sh.getLastColumn()).createFilter();
 
