@@ -276,6 +276,7 @@ function armarTodos_(ss, ped, col) {
   t.getRange('A2').setFormula('=LET(a,{' + forms + ';' + web + '},FILTER(a,INDEX(a,,3)<>""))');
   t.getRange('B2:B').setNumberFormat('dd/MM/yyyy HH:mm:ss');
   t.setFrozenRows(1);
+  if (t.getFilter()) t.getFilter().remove();
   t.getRange('A1:G1000').createFilter();
   t.autoResizeColumns(1, 7);
 }
